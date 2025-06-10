@@ -1,0 +1,33 @@
+{
+  "name": "whatsapp-bot",
+  "version": "0.1.1",
+  "description": "Just my WhatsApp bot.",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "start:bun": "bun run --watch .",
+    "start:node": "tsx --watch ."
+  },
+  "keywords": [
+    "whatsapp-bot",
+    "wa-bot",
+    "wppconnect"
+  ],
+  "author": "just-shadyumbrella",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.1",
+  "dependencies": {
+    "@libsql/client": "^0.15.9",
+    "@wppconnect-team/wppconnect": "^1.37.2",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
+    "qrcode-terminal": "^0.12.0",
+    "systeminformation": "^5.27.1"
+  },
+  "devDependencies": {
+    "@types/qrcode-terminal": "^0.12.2",
+    "drizzle-kit": "^0.31.1",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
