@@ -49,11 +49,11 @@ const sysinfo = async () => {
   return `*📝 Status*
   
 *Uptime:* ${new Date(time.uptime * 1000).toISOString().substr(11, 8)}
-*Runner:* ${system.model}${system.virtual ? ' (Virtualized)' : ''}
-*OS:* ${osInfo.distro} Build ${osInfo.release}${osInfo.codename ? ` (${osInfo.codename})` : ''} (kernel: ${
+*Runner:* ${system.manufacturer} ${system.model}${system.virtual ? ' (Virtualized)' : ''} ${system.version}
+*OS:* ${osInfo.distro} ${osInfo.release}${osInfo.codename ? ` "${osInfo.codename}"` : ''} (kernel: ${
     osInfo.kernel
   } ${osInfo.arch})
-*CPU:* ${cpu.manufacturer} ${cpu.brand} (${cpu.cores} cores, up to ${cpu.speedMax} GHz)
+*CPU:* ${cpu.manufacturer} ${cpu.brand} (${cpu.cores} cores, up to ${cpu.speedMax !== null ? cpu.speedMax : cpu.speed} GHz)
 *Memory:* ${convertByteUnit(mem.used, 'GB')}/${convertByteUnit(mem.total, 'GB')} GB
 *Disk:* ${convertByteUnit(fsSize[0].used, 'GB')}/${convertByteUnit(fsSize[0].size, 'GB')} GB
 
