@@ -2,7 +2,7 @@ name: SI
 on: [workflow_dispatch]
 jobs:
   test:
-    name: Test on ${{ matrix.os }}
+    name: SI ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
