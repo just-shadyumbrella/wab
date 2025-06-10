@@ -38,8 +38,14 @@ const cpu = await si.cpu()
 console.timeEnd('CPU information stored')
 const sysinfo = async () => {
   const time = si.time()
+  console.log('Gathering memory information...')
+  console.time('Memory information gathered')
   const mem = await si.mem()
+  console.timeEnd('Memory information gathered')
+  console.log('Gathering filesystem information...')
+  console.time('Filesystem information gathered')
   const fsSize = await si.fsSize()
+  console.timeEnd('Filesystem information gathered')
   return `*📝 Status*
   
 *Uptime:* ${new Date(time.uptime * 1000).toISOString().substr(11, 8)}

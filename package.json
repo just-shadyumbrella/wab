@@ -1,18 +1,13 @@
 {
-  "name": "whatsapp-bot",
+  "name": "wab",
   "version": "0.1.1",
-  "description": "Just my WhatsApp bot.",
+  "description": "WAB WAb Wab wab",
   "type": "module",
-  "main": "dist/index.js",
   "scripts": {
     "start:bun": "bun run --watch .",
     "start:node": "tsx --watch ."
   },
-  "keywords": [
-    "whatsapp-bot",
-    "wa-bot",
-    "wppconnect"
-  ],
+  "keywords": [],
   "author": "just-shadyumbrella",
   "license": "MIT",
   "packageManager": "pnpm@10.11.1",

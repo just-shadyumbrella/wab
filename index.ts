@@ -35,8 +35,6 @@ const config: wppconnect.CreateOptions = {
   catchLinkCode: (str) => console.log('Pairing code: ' + str),
 }
 
-console.log(process.env, config)
-
 try {
   const client = await wppconnect.create(config)
   client.onAnyMessage(async (message) => {
