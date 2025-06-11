@@ -26,7 +26,6 @@ const readMore = ` ${'\u{34f}'.repeat(1024 * 3)}`
 /* SYSTEM INFO */
 console.log('Gathering system information...')
 console.time('System information stored')
-
 const system = await si.system()
 console.timeEnd('System information stored')
 console.log('Gathering OS information...')
@@ -109,9 +108,12 @@ function parseCommand(input: string): string[] {
   return tokens
 }
 
-function help(commandInstructions: string, description: string) {
+function help(commandInstructions: string[], description: string) {
+  commandInstructions.map((e) => {
+    return `\`${e}\``
+  })
   return `💡 *Penggunaan*
-\`\`\`${commandInstructions}\`\`\`
+${commandInstructions.join('\n')}
 ${description}`
 }
 
@@ -121,24 +123,46 @@ function getSenderNumber(message: wppconnect.Message): string {
   return author.replace(/@.*$/, '')
 }
 
-// type Contact2 = {
-//   id
-// } & wppconnect.Contact
+function sendText(msg: string, client: wppconnect.Whatsapp, message: wppconnect.Message, quoted: boolean = true) {
+  return client.sendText(
+    process.env.PHONE_NUMBER + '@c.us' === message.from ? message.to : message.from,
+    msg,
+    {
+      quotedMsg: quoted ? message.id : undefined,
+    }
+  )
+}
 
-async function getMembers(client: wppconnect.Whatsapp, message: wppconnect.Message) {
+/**
+ * @todo Temporal fix for types, shall contact upstream maintainers
+ */
+interface Contact2 extends Omit<wppconnect.Contact, 'id'> {
+  id: wppconnect.Wid
+}
+
+async function splitMembersAndAdmins(client: wppconnect.Whatsapp, message: wppconnect.Message) {
   if (message.isGroupMsg) {
-    const admins = await client.getGroupAdmins(message.from)
-    const members = (await client.getGroupMembers(message.from)).filter((e) => {
+    const admins = (await client.getGroupAdmins(message.from)) as wppconnect.Wid[]
+    const members = (await client.getGroupMembersIds(message.from)).filter((e) => {
       for (const admin of admins) {
-        if (e.id.user === admin.user) {
-          return false
-        }
+        return e.user !== admin.user
       }
       return true
     })
-
     return { members, admins }
   }
+}
+
+async function isAdmin(client: wppconnect.Whatsapp, message: wppconnect.Message) {
+  if (message.isGroupMsg) {
+    const admins = (await client.getGroupAdmins(message.from)) as wppconnect.Wid[]
+    for (const admin of admins) {
+      if (admin.user === getSenderNumber(message)) {
+        return true
+      }
+    }
+  }
+  return false
 }
 
 /* COMMANDS */
@@ -148,14 +172,12 @@ const commands = {
     '/start': [
       'Cek status aktif mode bot.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        client.sendText(
-          message.from,
+        return await sendText(
           `🤖 Hai! Saya kembali untuk bergabung dengan kalian! 😁
 
 Silahkan kirim perintah \`/help\` untuk list perintah.`,
-          {
-            quotedMsg: message.id,
-          }
+          client,
+          message
         )
       },
     ],
@@ -178,17 +200,14 @@ Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`.
 *${menuHead}:*
 ${list}`
         }
-        client.sendText(message.from, msg.trim(), {
-          quotedMsg: message.id,
-        })
+
+        return await sendText(msg.trim(), client, message)
       },
     ],
     '/status': [
       'Cek status host.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        client.sendText(message.from, await sysinfo(), {
-          quotedMsg: message.id,
-        })
+        return await sendText(await sysinfo(), client, message)
       },
     ],
   },
@@ -196,46 +215,60 @@ ${list}`
     '/ping': [
       'Tag seluruh penghuni grup.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const params = parseCommand(message.body || '')
-        if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(
-            `
-/ping all <alasan?>
-/ping admin <alasan?>
-/ping member <alasan?>
-`,
-            'Tag seluruh penghuni grup, atau admin/member saja.'
-          )
-          return client.sendText(message.from, helpMsg, {
-            quotedMsg: message.id,
-          })
-        }
+        if (message.isGroupMsg) {
+          const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(
+              ['/ping all <alasan?>', '/ping admin <alasan?>', '/ping member <alasan?>'],
+              'Tag seluruh penghuni grup, atau admin/member saja.'
+            )
+            return client.sendText(message.from, helpMsg, {
+              quotedMsg: message.id,
+            })
+          }
 
-        const groupMembers = await getMembers(client, message)
-        if (groupMembers) {
-          const param1 = params[1]
-          const alasan = params[2]
-          const senderNumber = getSenderNumber(message)
-          let msg = '*🔔 Ping*' + (alasan ? '' : readMore) + '\n\n'
-          if (alasan) {
-            msg += `> ${alasan}\n\n_@${senderNumber}_\n${readMore}\n`
+          const groupMembers = await splitMembersAndAdmins(client, message)
+          if (groupMembers) {
+            const param1 = params[1]
+            const alasan = params[2]
+            const senderNumber = getSenderNumber(message)
+            let msg = '*🔔 Ping*' + (alasan ? '' : readMore) + '\n\n'
+            if (alasan) {
+              msg += `> ${alasan}\n\n_@${senderNumber}_\n${readMore}\n`
+            }
+            const adminList = groupMembers.admins.map((admin) => `👑 @${admin.user}`).join('\n')
+            const memberList = groupMembers.members.map((member) => `👤 @${member.user}`).join('\n')
+            switch (param1) {
+              case 'all':
+                msg += `*Admin:*\n${adminList}\n${readMore}\n*Member:*\n${memberList}`
+                break
+              case 'admin':
+                msg += `*Admin:*\n${adminList}`
+                break
+              case 'member':
+                msg += `*Member:*\n${memberList}`
+                break
+            }
+            return await sendText(msg, client, message)
           }
-          const adminList = groupMembers.admins.map((admin) => `👑 @${admin.user}`).join('\n')
-          const memberList = groupMembers.members.map((member) => `👤 @${member.id.user}`).join('\n')
-          switch (param1) {
-            case 'all':
-              msg += `*Admin:*\n${adminList}\n${readMore}\n*Member:*\n${memberList}`
-              break
-            case 'admin':
-              msg += `*Admin:*\n${adminList}`
-              break
-            case 'member':
-              msg += `*Member:*\n${memberList}`
-              break
-          }
-          client.sendText(message.from, msg, {
-            quotedMsg: message.id,
-          })
+        }
+      },
+    ],
+    '/close': [
+      'Menutup grup; melarang member untuk mengirim pesan. 👑',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        if (message.isGroupMsg && (await isAdmin(client, message))) {
+          await client.setMessagesAdminsOnly(message.from, true)
+          return await sendText(`Grup ini ditutup oleh admin @${getSenderNumber(message)}`, client, message, false)
+        }
+      },
+    ],
+    '/open': [
+      'Membuka grup; mengizinkan member untuk mengirim pesan. 👑',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        if (message.isGroupMsg && (await isAdmin(client, message))) {
+          await client.setMessagesAdminsOnly(message.from, false)
+          return await sendText(`Grup ini dibuka oleh admin @${getSenderNumber(message)}`, client, message, false)
         }
       },
     ],

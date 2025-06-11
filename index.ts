@@ -46,7 +46,7 @@ try {
     }
   })
   client.onAnyMessage(async (message) => {
-    console.log(message)
+    console.log('Retrieve message:', message)
     const msg = message.body
     if (msg) {
       const i = msg.indexOf(' ')
