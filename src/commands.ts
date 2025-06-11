@@ -124,13 +124,13 @@ function getSenderNumber(message: wppconnect.Message): string {
 }
 
 function sendText(msg: string, client: wppconnect.Whatsapp, message: wppconnect.Message, quoted: boolean = true) {
-  return client.sendText(
-    process.env.PHONE_NUMBER + '@c.us' === message.from ? message.to : message.from,
-    msg,
-    {
-      quotedMsg: quoted ? message.id : undefined,
-    }
-  )
+  return client.sendText(chatIdResolver(message), msg, {
+    quotedMsg: quoted ? message.id : undefined,
+  })
+}
+
+function chatIdResolver(message: wppconnect.Message) {
+  return process.env.PHONE_NUMBER + '@c.us' === message.from ? message.to : message.from
 }
 
 /**
@@ -155,7 +155,7 @@ async function splitMembersAndAdmins(client: wppconnect.Whatsapp, message: wppco
 
 async function isAdmin(client: wppconnect.Whatsapp, message: wppconnect.Message) {
   if (message.isGroupMsg) {
-    const admins = (await client.getGroupAdmins(message.from)) as wppconnect.Wid[]
+    const admins = (await client.getGroupAdmins(chatIdResolver(message))) as wppconnect.Wid[]
     for (const admin of admins) {
       if (admin.user === getSenderNumber(message)) {
         return true
@@ -226,7 +226,6 @@ ${list}`
               quotedMsg: message.id,
             })
           }
-
           const groupMembers = await splitMembersAndAdmins(client, message)
           if (groupMembers) {
             const param1 = params[1]
@@ -254,6 +253,15 @@ ${list}`
         }
       },
     ],
+    '/open': [
+      'Membuka grup; mengizinkan member untuk mengirim pesan. 👑',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        if (message.isGroupMsg && (await isAdmin(client, message))) {
+          await client.setMessagesAdminsOnly(message.from, false)
+          return await sendText(`Grup ini dibuka oleh admin @${getSenderNumber(message)}`, client, message, false)
+        }
+      },
+    ],
     '/close': [
       'Menutup grup; melarang member untuk mengirim pesan. 👑',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
@@ -263,12 +271,49 @@ ${list}`
         }
       },
     ],
-    '/open': [
-      'Membuka grup; mengizinkan member untuk mengirim pesan. 👑',
+    '/promote': [
+      'Memberikan tahta admin. 👑',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         if (message.isGroupMsg && (await isAdmin(client, message))) {
-          await client.setMessagesAdminsOnly(message.from, false)
-          return await sendText(`Grup ini dibuka oleh admin @${getSenderNumber(message)}`, client, message, false)
+          const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(['/promote @username', '/promote @username1 @username2'], 'Memberikan tahta admin')
+            return await sendText(helpMsg, client, message)
+          }
+          params.shift()
+          params[params.length - 1] = 'dan ' + params[params.length - 1]
+          for (const param of params) {
+            await client.promoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
+          }
+          return await sendText(
+            `${params.join(', ')} diberikan tahta admin oleh @${getSenderNumber(message)}`,
+            client,
+            message,
+            false
+          )
+        }
+      },
+    ],
+    '/demote': [
+      'Kudeta admin. 👑',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        if (message.isGroupMsg && (await isAdmin(client, message))) {
+          const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(['/demote @username', '/promote @username1 @username2'], 'Kudeta admin')
+            return await sendText(helpMsg, client, message)
+          }
+          params.shift()
+          params[params.length - 1] = 'dan ' + params[params.length - 1]
+          for (const param of params) {
+            await client.demoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
+          }
+          return await sendText(
+            `@${getSenderNumber(message)} telah mengkudeta ${params.join(', ')}`,
+            client,
+            message,
+            false
+          )
         }
       },
     ],

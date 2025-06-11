@@ -21,8 +21,8 @@ Info penggunaan cukup kirim perintah tanpa argumen.
 - [ ] `/automsg` Otomatis kirim pesan ke grup pada jam tertentu. 👑
 - [ ] `/reply` Otomatis balas pesan yang mengandung kata tertentu. 👑
 - [ ] `/badword` Otomatis menghapus pesan yang mengandung kata yang disetel. 👑
-- [ ] `/promote` Memberikan tahta admin. 👑
-- [ ] `/demote` Kudeta admin. 👑
+- [x] `/promote` Memberikan tahta admin. 👑
+- [x] `/demote` Kudeta admin. 👑
 
 *Menu Fun:*
 - [ ] `/jodoh` Jodohkan member grup secara acak.
