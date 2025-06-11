@@ -41,7 +41,7 @@ try {
     if (state === 'CONNECTED') {
       const phoneNumber = process.env.PHONE_NUMBER
       if (phoneNumber) {
-        client.sendText(phoneNumber + '@c.us', 'Automatic client connected successfully.')
+        client.sendText(phoneNumber + '@c.us', 'Automatic client successfully connected.')
       }
     }
   })
