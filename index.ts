@@ -37,6 +37,14 @@ const config: wppconnect.CreateOptions = {
 
 try {
   const client = await wppconnect.create(config)
+  client.onStateChange((state) => {
+    if (state === 'CONNECTED') {
+      const phoneNumber = process.env.PHONE_NUMBER
+      if (phoneNumber) {
+        client.sendText(phoneNumber + '@c.us', 'Automatic client connected successfully.')
+      }
+    }
+  })
   client.onAnyMessage(async (message) => {
     console.log(message)
     const msg = message.body

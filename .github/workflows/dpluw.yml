@@ -14,13 +14,13 @@ jobs:
           rclone_config: ${{ secrets.RCLONE_CONFIG }}
 
       - name: Sync
-        run: rclone sync mega:tokens ./tokens
+        run: rclone sync cloud:tokens ./tokens
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Write .env from base64
+      - name: Environment
         run: |
           echo "${{ secrets.ENV }}" | base64 -d > .env
 

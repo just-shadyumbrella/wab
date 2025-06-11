@@ -48,12 +48,14 @@ const sysinfo = async () => {
   console.timeEnd('Filesystem information gathered')
   return `*📝 Status*
   
-*Uptime:* ${new Date(time.uptime * 1000).toISOString().substr(11, 8)}
+*System Uptime:* ${new Date(time.uptime * 1000).toISOString().substr(11, 8)}
 *Runner:* ${system.manufacturer} ${system.model}${system.virtual ? ' (Virtualized)' : ''} ${system.version}
-*OS:* ${osInfo.distro} ${osInfo.release}${osInfo.codename ? ` "${osInfo.codename}"` : ''} (kernel: ${
-    osInfo.kernel
-  } ${osInfo.arch})
-*CPU:* ${cpu.manufacturer} ${cpu.brand} (${cpu.cores} cores, up to ${cpu.speedMax !== null ? cpu.speedMax : cpu.speed} GHz)
+*OS:* ${osInfo.distro} ${osInfo.release}${osInfo.codename ? ` "${osInfo.codename}"` : ''} (kernel: ${osInfo.kernel} ${
+    osInfo.arch
+  })
+*CPU:* ${cpu.manufacturer} ${cpu.brand} (${cpu.cores} cores available, up to ${
+    cpu.speedMax !== null ? cpu.speedMax : cpu.speed
+  } GHz)
 *Memory:* ${convertByteUnit(mem.used, 'GB')}/${convertByteUnit(mem.total, 'GB')} GB
 *Disk:* ${convertByteUnit(fsSize[0].used, 'GB')}/${convertByteUnit(fsSize[0].size, 'GB')} GB
 
@@ -76,6 +78,49 @@ function convertByteUnit(bytes: number, unit: 'KB' | 'MB' | 'GB') {
   const value = bytes / units[unit]
   const result = Math.round(value * 100) / 100
   return result
+}
+
+function parseCommand(input: string): string[] {
+  const tokens: string[] = []
+  let current = ''
+  let inQuotes = false
+  let escapeNext = false
+
+  for (const char of input) {
+    if (escapeNext) {
+      current += char
+      escapeNext = false
+    } else if (char === '\\') {
+      escapeNext = true
+    } else if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ' ' && !inQuotes) {
+      if (current) {
+        tokens.push(current)
+        current = ''
+      }
+    } else {
+      current += char
+    }
+  }
+
+  if (current) {
+    tokens.push(current)
+  }
+
+  return tokens
+}
+
+function help(commandInstructions: string, description: string) {
+  return `💡 *Penggunaan*
+\`\`\`${commandInstructions}\`\`\`
+${description}`
+}
+
+function getSenderNumber(message: wppconnect.Message): string {
+  const author = message.author
+  if (typeof author !== 'string') return ''
+  return author.replace(/@.*$/, '')
 }
 
 // type Contact2 = {
@@ -121,7 +166,7 @@ Silahkan kirim perintah \`/help\` untuk list perintah.`,
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         let msg = `*📝 LIST PERINTAH*
 
-Info penggunaan cukup kirim perintah tanpa argumen, atau \`/perintah help\`.
+Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`.
 
 > 👑 Hanya Admin
 `
@@ -153,22 +198,43 @@ ${list}`
     '/ping': [
       'Tag seluruh penghuni grup.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        let adminList = '',
-          memberist = ''
+        const params = parseCommand(message.body || '')
+        if (params.length <= 1 || params[1] === 'help') {
+          const helpMsg = help(
+            `
+/ping all <alasan?>
+/ping admin <alasan?>
+/ping member <alasan?>
+`,
+            'Tag seluruh penghuni grup, atau admin/member saja.'
+          )
+          return client.sendText(message.from, helpMsg, {
+            quotedMsg: message.id,
+          })
+        }
+
         const groupMembers = await getMembers(client, message)
         if (groupMembers) {
-          for (const admin of groupMembers.admins) {
-            adminList += `- @${admin.user}\n`
+          const param1 = params[1]
+          const alasan = params[2]
+          const senderNumber = getSenderNumber(message)
+          let msg = '*🔔 Ping*' + (alasan ? '' : readMore) + '\n\n'
+          if (alasan) {
+            msg += `> ${alasan}\n\n_@${senderNumber}_\n${readMore}\n`
           }
-          for (const member of groupMembers.members) {
-            memberist += `- @${member.id.user}\n`
+          const adminList = groupMembers.admins.map((admin) => `👑 @${admin.user}`).join('\n')
+          const memberList = groupMembers.members.map((member) => `👤 @${member.id.user}`).join('\n')
+          switch (param1) {
+            case 'all':
+              msg += `*Admin:*\n${adminList}\n${readMore}\n*Member:*\n${memberList}`
+              break
+            case 'admin':
+              msg += `*Admin:*\n${adminList}`
+              break
+            case 'member':
+              msg += `*Member:*\n${memberList}`
+              break
           }
-          const msg = `*🔔 Ping*${readMore}
-
-Admin:
-${adminList}
-${readMore}Member:
-${memberist}`
           client.sendText(message.from, msg, {
             quotedMsg: message.id,
           })
