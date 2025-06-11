@@ -281,10 +281,10 @@ ${list}`
             return await sendText(helpMsg, client, message)
           }
           params.shift()
-          params[params.length - 1] = 'dan ' + params[params.length - 1]
           for (const param of params) {
             await client.promoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
           }
+          params[params.length - 1] = 'dan ' + params[params.length - 1]
           return await sendText(
             `${params.join(', ')} diberikan tahta admin oleh @${getSenderNumber(message)}`,
             client,
@@ -304,10 +304,10 @@ ${list}`
             return await sendText(helpMsg, client, message)
           }
           params.shift()
-          params[params.length - 1] = 'dan ' + params[params.length - 1]
           for (const param of params) {
             await client.demoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
           }
+          params[params.length - 1] = 'dan ' + params[params.length - 1]
           return await sendText(
             `@${getSenderNumber(message)} telah mengkudeta ${params.join(', ')}`,
             client,
