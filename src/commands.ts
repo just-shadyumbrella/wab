@@ -53,9 +53,7 @@ const sysinfo = async () => {
 *OS:* ${osInfo.distro} ${osInfo.release}${osInfo.codename ? ` "${osInfo.codename}"` : ''} (kernel: ${osInfo.kernel} ${
     osInfo.arch
   })
-*CPU:* ${cpu.manufacturer} ${cpu.brand} (${cpu.cores} cores available, up to ${
-    cpu.speedMax !== null ? cpu.speedMax : cpu.speed
-  } GHz)
+*CPU:* ${cpu.manufacturer} ${cpu.brand} (${cpu.cores} cores available, up to ${cpu.speed} GHz)
 *Memory:* ${convertByteUnit(mem.used, 'GB')}/${convertByteUnit(mem.total, 'GB')} GB
 *Disk:* ${convertByteUnit(fsSize[0].used, 'GB')}/${convertByteUnit(fsSize[0].size, 'GB')} GB
 
