@@ -33,6 +33,9 @@ const config: wppconnect.CreateOptions = {
   debug: process.env.DEBUG === 'true',
   phoneNumber: process.env.PHONE_NUMBER,
   catchLinkCode: (str) => console.log('Pairing code: ' + str),
+  puppeteerOptions: {
+    timeout: 0,
+  }
 }
 
 try {

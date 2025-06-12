@@ -29,6 +29,7 @@ Info penggunaan cukup kirim perintah tanpa argumen.
 - [ ] `/kerangajaib` 🐚 Puja Kerang Ajaib! ULOLOLOLOLOLOLOLOLOLO 👅
 
 *Menu Lain-lain:*
+- [ ] `/math` Pustaka mathjs.org.
 - [ ] `/sticker` Ubah gambar jadi stiker.
 - [ ] `/magick` Alat manipulasi gambar, mungkin bisa buat hd-in gambar.
 - [ ] `/ffmpeg` Alat processing media multi-fungsi.

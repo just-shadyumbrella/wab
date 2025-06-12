@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import si from 'systeminformation'
 import { config } from 'dotenv'
+import {evaluate} from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
 
 config()
@@ -77,6 +78,13 @@ function convertByteUnit(bytes: number, unit: 'KB' | 'MB' | 'GB') {
   return result
 }
 
+function randomBetween(min:number, max:number) {
+  const minCeiled = Math.ceil(min)
+  const maxFloored = Math.floor(max)
+  return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled) // The maximum is exclusive and the minimum is inclusive
+}
+
+
 function parseCommand(input: string): string[] {
   const tokens: string[] = []
   let current = ''
@@ -116,6 +124,38 @@ function help(commandInstructions: string[], description: string) {
 ${commandInstructions.join('\n')}
 ${description}`
 }
+
+const kerangAjaib = (pertanyaan) => {
+  const lowerPertanyaan = pertanyaan.toLowerCase();
+
+  const jawaban = [
+    { keywords: ['boleh', 'izin', 'haruskah'], responses: ['Kurasa tidak.', 'Tidak keduanya.', 'Mungkin suatu hari.', 'Ya.'] },
+    { keywords: ['aku', 'saya', 'gimana', 'bagaimana'], responses: ['Coba tanya lagi.', 'Mungkin suatu hari.', 'Kurasa tidak.'] },
+    { keywords: ['akan', 'bakal', 'apakah'], responses: ['Ya.', 'Kurasa tidak.', 'Tidak juga.'] },
+    { keywords: ['dimana', 'di mana', 'lokasi'], responses: ['Tidak ada.', 'Coba tanya lagi.', 'Kurasa tidak.'] },
+    { keywords: ['kapan', 'waktu'], responses: ['Mungkin suatu hari.', 'Coba tanya lagi.', 'Tidak keduanya.'] }
+  ];
+
+  for (const rule of jawaban) {
+    if (rule.keywords.some(keyword => lowerPertanyaan.includes(keyword))) {
+      return rule.responses[Math.floor(Math.random() * rule.responses.length)];
+    }
+  }
+
+  // Default fallback random
+  const defaultResponses = [
+    'Mungkin suatu hari.',
+    'Tidak juga.',
+    'Tidak keduanya.',
+    'Kurasa tidak.',
+    'Ya.',
+    'Coba tanya lagi.',
+    'Tidak ada.'
+  ];
+
+  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+};
+
 
 function getSenderNumber(message: wppconnect.Message): string {
   const author = message.author
@@ -186,7 +226,7 @@ Silahkan kirim perintah \`/help\` untuk list perintah.`,
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         let msg = `*📝 LIST PERINTAH*
 
-Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`.
+Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`. Beberapa perintah dapat digunakan tanpa argumen.
 
 > 👑 Hanya Admin
 `
@@ -315,6 +355,35 @@ ${list}`
             false
           )
         }
+      },
+    ],
+  },
+  'Menu Fun': {
+    '/kerangajaib': [
+      '🐚 Puja Kerang Ajaib! ULOLOLOLOLOLOLOLOLOLO 👅 (alpha)',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(['/kerangajaib <pertanyaan>'], 'ALPHA')
+            return await sendText(helpMsg, client, message)
+          }
+          params.shift()
+          return await sendText(kerangAjaib(params.join('')), client, message, true)
+        
+      },
+    ],
+  },
+  'Menu Lainnya': {
+    '/math': [
+      '`Pustaka mathjs.org (alpha: perintah ini masih belum sepenuhnya mencakup seluruh fitur mathjs)`',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(['/math <expression>'], 'UNDOCUMENTED')
+            return await sendText(helpMsg, client, message)
+          }
+          params.shift()
+          return await sendText(evaluate(params.join('')).toString(), client, message, true)
       },
     ],
   },
