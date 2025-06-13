@@ -17,7 +17,7 @@ Info penggunaan cukup kirim perintah tanpa argumen.
 - [x] `/open` Membuka grup; mengizinkan member untuk mengirim pesan. 👑
 - [x] `/close` Menutup grup; melarang member untuk mengirim pesan. 👑
 - [ ] `/warn` Memberi peringatan pada seorang member. 👑
-- [ ] `/kick` Mengeluarkan member. 👑
+- [x] `/kick` Mengeluarkan member. 👑
 - [ ] `/automsg` Otomatis kirim pesan ke grup pada jam tertentu. 👑
 - [ ] `/reply` Otomatis balas pesan yang mengandung kata tertentu. 👑
 - [ ] `/badword` Otomatis menghapus pesan yang mengandung kata yang disetel. 👑
@@ -26,10 +26,10 @@ Info penggunaan cukup kirim perintah tanpa argumen.
 
 *Menu Fun:*
 - [ ] `/jodoh` Jodohkan member grup secara acak.
-- [ ] `/kerangajaib` 🐚 Puja Kerang Ajaib! ULOLOLOLOLOLOLOLOLOLO 👅
+- [-] `/kerangajaib` 🐚 Puja Kerang Ajaib! ULOLOLOLOLOLOLOLOLOLO 👅
 
 *Menu Lain-lain:*
-- [ ] `/math` Pustaka mathjs.org.
+- [-] `/math` Pustaka mathjs.org.
 - [ ] `/sticker` Ubah gambar jadi stiker.
 - [ ] `/magick` Alat manipulasi gambar, mungkin bisa buat hd-in gambar.
 - [ ] `/ffmpeg` Alat processing media multi-fungsi.

@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import si from 'systeminformation'
 import { config } from 'dotenv'
-import {evaluate} from 'mathjs'
+import { evaluate } from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
 
 config()
@@ -78,12 +78,11 @@ function convertByteUnit(bytes: number, unit: 'KB' | 'MB' | 'GB') {
   return result
 }
 
-function randomBetween(min:number, max:number) {
+function randomBetween(min: number, max: number) {
   const minCeiled = Math.ceil(min)
   const maxFloored = Math.floor(max)
   return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled) // The maximum is exclusive and the minimum is inclusive
 }
-
 
 function parseCommand(input: string): string[] {
   const tokens: string[] = []
@@ -117,28 +116,34 @@ function parseCommand(input: string): string[] {
 }
 
 function help(commandInstructions: string[], description: string) {
-  commandInstructions.map((e) => {
-    return `\`${e}\``
-  })
+  const formattedInstructions = commandInstructions.map((e) => `\`${e}\``)
   return `💡 *Penggunaan*
-${commandInstructions.join('\n')}
+
+${formattedInstructions.join('\n')}
+
 ${description}`
 }
 
-const kerangAjaib = (pertanyaan) => {
-  const lowerPertanyaan = pertanyaan.toLowerCase();
+const kerangAjaib = (pertanyaan: string) => {
+  const lowerPertanyaan = pertanyaan.toLowerCase()
 
   const jawaban = [
-    { keywords: ['boleh', 'izin', 'haruskah'], responses: ['Kurasa tidak.', 'Tidak keduanya.', 'Mungkin suatu hari.', 'Ya.'] },
-    { keywords: ['aku', 'saya', 'gimana', 'bagaimana'], responses: ['Coba tanya lagi.', 'Mungkin suatu hari.', 'Kurasa tidak.'] },
+    {
+      keywords: ['boleh', 'izin', 'haruskah'],
+      responses: ['Kurasa tidak.', 'Tidak keduanya.', 'Mungkin suatu hari.', 'Ya.'],
+    },
+    {
+      keywords: ['aku', 'saya', 'gimana', 'bagaimana'],
+      responses: ['Coba tanya lagi.', 'Mungkin suatu hari.', 'Kurasa tidak.'],
+    },
     { keywords: ['akan', 'bakal', 'apakah'], responses: ['Ya.', 'Kurasa tidak.', 'Tidak juga.'] },
     { keywords: ['dimana', 'di mana', 'lokasi'], responses: ['Tidak ada.', 'Coba tanya lagi.', 'Kurasa tidak.'] },
-    { keywords: ['kapan', 'waktu'], responses: ['Mungkin suatu hari.', 'Coba tanya lagi.', 'Tidak keduanya.'] }
-  ];
+    { keywords: ['kapan', 'waktu'], responses: ['Mungkin suatu hari.', 'Coba tanya lagi.', 'Tidak keduanya.'] },
+  ]
 
   for (const rule of jawaban) {
-    if (rule.keywords.some(keyword => lowerPertanyaan.includes(keyword))) {
-      return rule.responses[Math.floor(Math.random() * rule.responses.length)];
+    if (rule.keywords.some((keyword) => lowerPertanyaan.includes(keyword))) {
+      return rule.responses[Math.floor(Math.random() * rule.responses.length)]
     }
   }
 
@@ -150,12 +155,11 @@ const kerangAjaib = (pertanyaan) => {
     'Kurasa tidak.',
     'Ya.',
     'Coba tanya lagi.',
-    'Tidak ada.'
-  ];
+    'Tidak ada.',
+  ]
 
-  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-};
-
+  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)]
+}
 
 function getSenderNumber(message: wppconnect.Message): string {
   const author = message.author
@@ -169,15 +173,12 @@ function sendText(msg: string, client: wppconnect.Whatsapp, message: wppconnect.
   })
 }
 
-function chatIdResolver(message: wppconnect.Message) {
-  return process.env.PHONE_NUMBER + '@c.us' === message.from ? message.to : message.from
+async function getMediaFile(client: wppconnect.Whatsapp, message: wppconnect.Message) {
+  
 }
 
-/**
- * @todo Temporal fix for types, shall contact upstream maintainers
- */
-interface Contact2 extends Omit<wppconnect.Contact, 'id'> {
-  id: wppconnect.Wid
+function chatIdResolver(message: wppconnect.Message) {
+  return process.env.PHONE_NUMBER + '@c.us' === message.from ? message.to : message.from
 }
 
 async function splitMembersAndAdmins(client: wppconnect.Whatsapp, message: wppconnect.Message) {
@@ -262,9 +263,7 @@ ${list}`
               ['/ping all <alasan?>', '/ping admin <alasan?>', '/ping member <alasan?>'],
               'Tag seluruh penghuni grup, atau admin/member saja.'
             )
-            return client.sendText(message.from, helpMsg, {
-              quotedMsg: message.id,
-            })
+            return await sendText(helpMsg, client, message)
           }
           const groupMembers = await splitMembersAndAdmins(client, message)
           if (groupMembers) {
@@ -311,6 +310,26 @@ ${list}`
         }
       },
     ],
+    '/kick': [
+      'Keluarkan member. 👑',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        if (message.isGroupMsg && (await isAdmin(client, message))) {
+          const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(['/kick @username', '/kick @username1 @username2 ...'], 'Keluarkan admin')
+            return await sendText(helpMsg, client, message)
+          }
+          params.shift()
+          // Earlier so tags are not missed
+          const result = await sendText(`@${getSenderNumber(message)} telah mengeluarkan ${params.join(', ')}`, client, message, false)
+          for (const param of params) {
+            await client.removeParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
+          }
+          if (params.length > 1) params[params.length - 1] = 'dan ' + params[params.length - 1]
+          return result
+        }
+      },
+    ],
     '/promote': [
       'Memberikan tahta admin. 👑',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
@@ -324,7 +343,7 @@ ${list}`
           for (const param of params) {
             await client.promoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
           }
-          params[params.length - 1] = 'dan ' + params[params.length - 1]
+          if (params.length > 1) params[params.length - 1] = 'dan ' + params[params.length - 1]
           return await sendText(
             `${params.join(', ')} diberikan tahta admin oleh @${getSenderNumber(message)}`,
             client,
@@ -340,14 +359,14 @@ ${list}`
         if (message.isGroupMsg && (await isAdmin(client, message))) {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/demote @username', '/promote @username1 @username2'], 'Kudeta admin')
+            const helpMsg = help(['/demote @username', '/promote @username1 @username2 ...'], 'Kudeta admin')
             return await sendText(helpMsg, client, message)
           }
           params.shift()
           for (const param of params) {
             await client.demoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
           }
-          params[params.length - 1] = 'dan ' + params[params.length - 1]
+          if (params.length > 1) params[params.length - 1] = 'dan ' + params[params.length - 1]
           return await sendText(
             `@${getSenderNumber(message)} telah mengkudeta ${params.join(', ')}`,
             client,
@@ -363,33 +382,52 @@ ${list}`
       '🐚 Puja Kerang Ajaib! ULOLOLOLOLOLOLOLOLOLO 👅 (alpha)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
-          if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/kerangajaib <pertanyaan>'], 'ALPHA')
-            return await sendText(helpMsg, client, message)
-          }
-          params.shift()
-          return await sendText(kerangAjaib(params.join('')), client, message, true)
-        
+        if (params.length <= 1 || params[1] === 'help') {
+          const helpMsg = help(['/kerangajaib <pertanyaan>'], 'ALPHA')
+          return await sendText(helpMsg, client, message)
+        }
+        params.shift()
+        return await sendText(kerangAjaib(params.join('')), client, message, true)
       },
     ],
   },
   'Menu Lainnya': {
-    '/math': [
-      '`Pustaka mathjs.org (alpha: perintah ini masih belum sepenuhnya mencakup seluruh fitur mathjs)`',
+    '/sticker': [
+      'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const params = parseCommand(message.body || '')
+        if (message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.DOCUMENT) {
+          const mediaData = await client.downloadMedia(message)
+          if (mediaData) {
+            return await client.sendImageAsSticker(chatIdResolver(message), mediaData, {
+              quotedMsg: message.id,
+            })
+          }
+        } else {
+          const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/math <expression>'], 'UNDOCUMENTED')
+            const helpMsg = help(['/sticker [gambar]'], 'UNDOCUMENTED')
             return await sendText(helpMsg, client, message)
           }
           params.shift()
-          return await sendText(evaluate(params.join('')).toString(), client, message, true)
+        }
+      },
+    ],
+    '/math': [
+      'Pustaka mathjs.org (alpha: perintah ini masih belum sepenuhnya mencakup seluruh fitur mathjs)',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+        if (params.length <= 1 || params[1] === 'help') {
+          const helpMsg = help(['/math <expression>'], 'UNDOCUMENTED')
+          return await sendText(helpMsg, client, message)
+        }
+        params.shift()
+        return await sendText(evaluate(params.join('')).toString(), client, message, true)
       },
     ],
   },
 }
 
-type CommandHandler = (client: wppconnect.Whatsapp, message: wppconnect.Message) => Promise<void>
+type CommandHandler = (client: wppconnect.Whatsapp, message: wppconnect.Message) => Promise<wppconnect.Message>
 export type CommandList = { [key: string]: [string, CommandHandler] }
 
 export default commands

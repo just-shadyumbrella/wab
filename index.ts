@@ -50,7 +50,7 @@ try {
   })
   client.onAnyMessage(async (message) => {
     console.log('Retrieve message:', message)
-    const msg = message.body
+    const msg = message.caption || message.body
     if (msg) {
       const i = msg.indexOf(' ')
       const incomingCmd = i > -1 ? msg.substring(0, i) : msg

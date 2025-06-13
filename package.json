@@ -3,9 +3,13 @@
   "version": "0.1.2",
   "description": "WAB WAb Wab wab",
   "type": "module",
+  "main": "index.ts",
   "scripts": {
+    "build": "tsc",
     "start:bun": "bun run --watch .",
-    "start:node": "tsx --watch ."
+    "start:node": "node --watch dist",
+    "start:tsx": "tsx --watch .",
+    "debug:node": "tsc && node --watch dist"
   },
   "keywords": [],
   "author": "just-shadyumbrella",
