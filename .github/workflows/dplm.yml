@@ -2,7 +2,7 @@ name: My workflow M
 on: [workflow_dispatch]
 jobs:
   job:
-    name: My Job M
+    name: My Job
     runs-on: macos-latest
     steps:
       - name: Checkout repository

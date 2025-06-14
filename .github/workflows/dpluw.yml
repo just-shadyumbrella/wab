@@ -2,7 +2,7 @@ name: My workflow W
 on: [workflow_dispatch]
 jobs:
   job:
-    name: My Job W
+    name: My Job
     runs-on: windows-latest
     steps:
       - name: Checkout repository
