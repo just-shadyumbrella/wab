@@ -11,7 +11,7 @@ const ownerNumbers = process.env.OWNER_NUMBER?.split(',')
 /* CONSTANTS */
 
 console.log('Gathering `package.json...`')
-console.time('Stored `package.json`')
+console.time('Package information stored')
 const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json')).toString())
 const bun = process.versions.bun,
   node = process.versions.node
@@ -161,20 +161,16 @@ const kerangAjaib = (pertanyaan: string) => {
   return defaultResponses[Math.floor(Math.random() * defaultResponses.length)]
 }
 
-function getSenderNumber(message: wppconnect.Message): string {
+export function getSenderNumber(message: wppconnect.Message): string {
   const author = message.author
   if (typeof author !== 'string') return ''
   return author.replace(/@.*$/, '')
 }
 
-function sendText(msg: string, client: wppconnect.Whatsapp, message: wppconnect.Message, quoted: boolean = true) {
+export function sendText(msg: string, client: wppconnect.Whatsapp, message: wppconnect.Message, quoted: boolean = true) {
   return client.sendText(chatIdResolver(message), msg, {
     quotedMsg: quoted ? message.id : undefined,
   })
-}
-
-async function getMediaFile(client: wppconnect.Whatsapp, message: wppconnect.Message) {
-  
 }
 
 function chatIdResolver(message: wppconnect.Message) {
@@ -316,10 +312,13 @@ ${list}`
         if (message.isGroupMsg && (await isAdmin(client, message))) {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/kick @username', '/kick @username1 @username2 ...'], 'Keluarkan admin')
+            const helpMsg = help(['/kick @username', '/kick @username1 @username2 <...>', '[reply] /kick'], 'Keluarkan admin')
             return await sendText(helpMsg, client, message)
           }
           params.shift()
+          if (message.quotedMsgId) {
+            params.push(getSenderNumber(await client.getMessageById(message.quotedMsgId || '')))
+          }
           // Earlier so tags are not missed
           const result = await sendText(`@${getSenderNumber(message)} telah mengeluarkan ${params.join(', ')}`, client, message, false)
           for (const param of params) {
@@ -336,10 +335,13 @@ ${list}`
         if (message.isGroupMsg && (await isAdmin(client, message))) {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/promote @username', '/promote @username1 @username2'], 'Memberikan tahta admin')
+            const helpMsg = help(['/promote @username', '/promote @username1 @username2 <...>', '[reply] /promote'], 'Memberikan tahta admin')
             return await sendText(helpMsg, client, message)
           }
           params.shift()
+          if (message.quotedMsgId) {
+            params.push(getSenderNumber(await client.getMessageById(message.quotedMsgId || '')))
+          }
           for (const param of params) {
             await client.promoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
           }
@@ -359,10 +361,13 @@ ${list}`
         if (message.isGroupMsg && (await isAdmin(client, message))) {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/demote @username', '/promote @username1 @username2 ...'], 'Kudeta admin')
+            const helpMsg = help(['/demote @username', '/demote @username1 @username2 <...>', '[reply] /demote'], 'Kudeta admin')
             return await sendText(helpMsg, client, message)
           }
           params.shift()
+          if (message.quotedMsgId) {
+            params.push(getSenderNumber(await client.getMessageById(message.quotedMsgId || '')))
+          }
           for (const param of params) {
             await client.demoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
           }
@@ -390,11 +395,24 @@ ${list}`
         return await sendText(kerangAjaib(params.join('')), client, message, true)
       },
     ],
+    '/percent': [
+      'UNDOCUMENTED (alpha)',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+        if (params.length <= 1 || params[1] === 'help') {
+          const helpMsg = help(['/percent <pertanyaan>'], 'UNDOCUMENTED')
+          return await sendText(helpMsg, client, message)
+        }
+        params.shift()
+        return await sendText(`${randomBetween(0, 100)}%`, client, message, true)
+      },
+    ],
   },
   'Menu Lainnya': {
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        if (message.quotedMsgId) message = await client.getMessageById(message.quotedMsgId || '')
         if (message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.DOCUMENT) {
           const mediaData = await client.downloadMedia(message)
           if (mediaData) {
@@ -405,10 +423,9 @@ ${list}`
         } else {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/sticker [gambar]'], 'UNDOCUMENTED')
+            const helpMsg = help(['[gambar] /sticker', '[reply] /sticker'], 'UNDOCUMENTED')
             return await sendText(helpMsg, client, message)
           }
-          params.shift()
         }
       },
     ],
@@ -427,7 +444,11 @@ ${list}`
   },
 }
 
-type CommandHandler = (client: wppconnect.Whatsapp, message: wppconnect.Message) => Promise<wppconnect.Message>
+interface Message2 extends wppconnect.Message {
+  quotedMsg?: wppconnect.Message
+}
+
+export type CommandHandler = (client: wppconnect.Whatsapp, message: wppconnect.Message) => Promise<wppconnect.Message>
 export type CommandList = { [key: string]: [string, CommandHandler] }
 
 export default commands

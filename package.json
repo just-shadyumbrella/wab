@@ -1,15 +1,14 @@
 {
   "name": "wab",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "WAB WAb Wab wab",
   "type": "module",
   "main": "index.ts",
   "scripts": {
     "build": "tsc",
     "start:bun": "bun run --watch .",
-    "start:node": "node --watch dist",
-    "start:tsx": "tsx --watch .",
-    "debug:node": "tsc && node --watch dist"
+    "start:node": "tsc && node dist",
+    "start:tsx": "tsx --watch ."
   },
   "keywords": [],
   "author": "just-shadyumbrella",

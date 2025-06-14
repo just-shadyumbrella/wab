@@ -1,5 +1,8 @@
 import wppconnect from '@wppconnect-team/wppconnect'
-import commands, { CommandList } from './src/commands.js'
+import commands, { sendText, getSenderNumber, CommandHandler } from './src/commands.js'
+
+// Start timer anchor
+const startTime = Date.now()
 
 console.info('Collecting commands...')
 console.time('Commands collected')
@@ -8,7 +11,7 @@ console.time('Commands collected')
 type CommandEntry = {
   menu: string
   description: string
-  handler: (client: wppconnect.Whatsapp, message: wppconnect.Message) => Promise<void>
+  handler: CommandHandler
 }
 const commandTable: { [cmd: string]: CommandEntry } = {}
 for (const menuName of Object.keys(commands)) {
@@ -35,11 +38,32 @@ const config: wppconnect.CreateOptions = {
   catchLinkCode: (str) => console.log('Pairing code: ' + str),
   puppeteerOptions: {
     timeout: 0,
-  }
+  },
+}
+
+async function shutdown(
+  client: wppconnect.Whatsapp,
+  //@ts-ignore
+  message: wppconnect.Message = { from: process.env.PHONE_NUMBER || '' }
+) {
+  await sendText('Sayonara!', client, message, false)
+  console.warn('Shutdown triggered')
+  client.close()
+  console.info('Client closed, finalizing...')
+  process.exit(0)
 }
 
 try {
   const client = await wppconnect.create(config)
+  // Timer maximum 5.75 hours online
+  ;(async function tick() {
+    const time = (Date.now() - startTime) / 1000
+    if (time > 60 * 60 * 5.75) {
+      await shutdown(client)
+    } else {
+      setTimeout(tick, 10000)
+    }
+  })()
   client.onStateChange((state) => {
     if (state === 'CONNECTED') {
       const phoneNumber = process.env.PHONE_NUMBER
@@ -58,7 +82,12 @@ try {
       if (entry) {
         await entry.handler(client, message)
       } else {
-        // Unknown command
+        // This is owner command, usually hidden from menu
+        if (process.env.OWNER_NUMBER?.split(',').includes(getSenderNumber(message))) {
+          if (incomingCmd === '/shutdown') {
+            await shutdown(client, message)
+          }
+        }
       }
     }
   })
