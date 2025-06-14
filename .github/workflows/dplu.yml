@@ -2,7 +2,7 @@ name: My workflow
 on: [workflow_dispatch]
 jobs:
   job:
-    name: My Job
+    name: My Job U
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
