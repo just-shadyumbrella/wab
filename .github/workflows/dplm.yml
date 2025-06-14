@@ -1,4 +1,4 @@
-name: My workflow
+name: My workflow M
 on: [workflow_dispatch]
 jobs:
   job:
