@@ -2,8 +2,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import si from 'systeminformation'
 import { config } from 'dotenv'
-import { evaluate } from 'mathjs'
+import { create, all } from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
+
+const math = create(all)
 
 config()
 
@@ -164,7 +166,12 @@ export function getSenderNumber(message: wppconnect.Message): string {
   return author.replace(/@.*$/, '')
 }
 
-export function sendText(msg: string, client: wppconnect.Whatsapp, message: wppconnect.Message, quoted: boolean = true) {
+export function sendText(
+  msg: string,
+  client: wppconnect.Whatsapp,
+  message: wppconnect.Message,
+  quoted: boolean = true
+) {
   return client.sendText(chatIdResolver(message), msg, {
     quotedMsg: quoted ? message.id : undefined,
   })
@@ -308,7 +315,10 @@ ${list}`
         if (message.isGroupMsg && (await isAdmin(client, message))) {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/kick @username', '/kick @username1 @username2 <...>', '[reply] /kick'], 'Keluarkan admin')
+            const helpMsg = help(
+              ['/kick @username', '/kick @username1 @username2 <...>', '[reply] /kick'],
+              'Keluarkan admin'
+            )
             return await sendText(helpMsg, client, message)
           }
           params.shift()
@@ -316,7 +326,12 @@ ${list}`
             params.push(getSenderNumber(await client.getMessageById(message.quotedMsgId || '')))
           }
           // Earlier so tags are not missed
-          const result = await sendText(`@${getSenderNumber(message)} telah mengeluarkan ${params.join(', ')}`, client, message, false)
+          const result = await sendText(
+            `@${getSenderNumber(message)} telah mengeluarkan ${params.join(', ')}`,
+            client,
+            message,
+            false
+          )
           for (const param of params) {
             await client.removeParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
           }
@@ -331,7 +346,10 @@ ${list}`
         if (message.isGroupMsg && (await isAdmin(client, message))) {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/promote @username', '/promote @username1 @username2 <...>', '[reply] /promote'], 'Memberikan tahta admin')
+            const helpMsg = help(
+              ['/promote @username', '/promote @username1 @username2 <...>', '[reply] /promote'],
+              'Memberikan tahta admin'
+            )
             return await sendText(helpMsg, client, message)
           }
           params.shift()
@@ -357,7 +375,10 @@ ${list}`
         if (message.isGroupMsg && (await isAdmin(client, message))) {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/demote @username', '/demote @username1 @username2 <...>', '[reply] /demote'], 'Kudeta admin')
+            const helpMsg = help(
+              ['/demote @username', '/demote @username1 @username2 <...>', '[reply] /demote'],
+              'Kudeta admin'
+            )
             return await sendText(helpMsg, client, message)
           }
           params.shift()
@@ -434,7 +455,7 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         params.shift()
-        return await sendText(evaluate(params.join('')).toString(), client, message, true)
+        return await sendText(math.evaluate(params.join('')).toString(), client, message, true)
       },
     ],
   },
