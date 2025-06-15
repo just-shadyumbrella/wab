@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch index.ts with tsx",
+      "runtimeExecutable": "tsx",
+      "runtimeArgs": [
+        "--watch"
+      ],
+      "program": "${workspaceFolder}/${input:entryPoint}",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "entryPoint",
+      "type": "pickString",
+      "description": "Select the entry point to debug",
+      "options": [
+        "index.ts",
+        "src/commands.ts"
+      ]
+    }
+  ]
+}
