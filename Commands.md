@@ -25,7 +25,7 @@ Info penggunaan cukup kirim perintah tanpa argumen.
 - [x] `/demote` Kudeta admin. 👑
 
 *Menu Fun:*
-- [ ] `/jodoh` Jodohkan member grup secara acak.
+- [-] `/jodoh` Jodohkan member grup secara acak.
 - [-] `/kerangajaib` 🐚 Puja Kerang Ajaib! ULOLOLOLOLOLOLOLOLOLO 👅
 
 *Menu Lain-lain:*

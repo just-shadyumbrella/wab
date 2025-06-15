@@ -10,7 +10,7 @@ const math = create(all)
 config()
 
 /* CONSTANTS */
-console.log('Gathering `package.json...`')
+console.log('Gathering `package.json`...')
 console.time('Package information stored')
 const pkg = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json')).toString())
 const bun = process.versions.bun,
@@ -20,7 +20,7 @@ const versions = [
   node ? `NodeJS v${node}` : undefined,
   [pkg['name'], pkg['version']].join(' v'),
 ].filter((e) => e !== undefined)
-console.timeEnd('Stored `package.json`')
+console.timeEnd('Package information stored')
 
 const readMore = ` ${'\u{34f}'.repeat(1024 * 3)}`
 
@@ -183,13 +183,10 @@ function chatIdResolver(message: wppconnect.Message) {
 
 async function splitMembersAndAdmins(client: wppconnect.Whatsapp, message: wppconnect.Message) {
   if (message.isGroupMsg) {
-    const admins = (await client.getGroupAdmins(chatIdResolver(message))) as wppconnect.Wid[]
-    const members = (await client.getGroupMembersIds(chatIdResolver(message))).filter((e) => {
-      for (const admin of admins) {
-        return e.user !== admin.user
-      }
-      return true
-    })
+    const chatId = chatIdResolver(message)
+    const admins = (await client.getGroupAdmins(chatId)) as wppconnect.Wid[]
+    const adminUsers = new Set(admins.map((a) => a.user)) // More efficient lookup
+    const members = (await client.getGroupMembersIds(chatId)).filter((e) => !adminUsers.has(e.user))
     return { members, admins }
   }
 }
@@ -406,31 +403,34 @@ ${list}`
         if (message.isGroupMsg) {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['/jodoh <all|admin|member> <all|admin|member>'], 'Jodohkan member grup secara acak')
+            const helpMsg = help(
+              ['/jodoh <all|admin|member|@tag> <all|admin|member|@tag>'],
+              'Jodohkan member grup secara acak'
+            )
             return await sendText(helpMsg, client, message)
           }
           const splitted = await splitMembersAndAdmins(client, message)
-          if (splitted) {
-            // Default: random member vs member
-            let group1: wppconnect.Id[] | wppconnect.Wid[] = splitted.members
-            let group2: wppconnect.Id[] | wppconnect.Wid[] = splitted.members
-            // Parse params for group selection
-            if (params[1] === 'admin') group1 = splitted.admins
-            if (params[2] === 'admin') group2 = splitted.admins
-            if (params[1] === 'all') group1 = splitted.admins.concat(splitted.members)
-            if (params[2] === 'all') group2 = splitted.admins.concat(splitted.members)
-            // Pick random from each group
-            const user1 = group1[Math.floor(Math.random() * group1.length)].user
-            let user2 = group2[Math.floor(Math.random() * group2.length)].user
-            // Avoid same user
-            let attempts = 0
-            while (user1 === user2 && group2.length > 1 && attempts < 5) {
-              user2 = group2[Math.floor(Math.random() * group2.length)].user
-              attempts++
+          const memberList = splitted?.members.map((member) => member.user) || []
+          const adminList = splitted?.admins.map((member) => member.user) || []
+          const allList = [...memberList, ...adminList]
+
+          const getRandomUser = (type: string) => {
+            switch (type) {
+              case 'all':
+                return '@' + allList[Math.floor(Math.random() * allList.length)]
+              case 'admin':
+                return '@' + adminList[Math.floor(Math.random() * adminList.length)]
+              case 'member':
+                return '@' + memberList[Math.floor(Math.random() * memberList.length)]
+              default:
+                return type.startsWith('@') ? type : null
             }
-            const msg = `Saya jodohkan @${user1} dengan @${user2}.\n\nCie...💖😘`
-            return await sendText(msg, client, message)
           }
+
+          const user1 = getRandomUser(params[1])
+          const user2 = getRandomUser(params[2])
+
+          return await sendText(`Saya jodohkan ${user1} dengan ${user2} dengan sejumlah kuota dibayar kasbon 💕`, client, message)
         }
       },
     ],
