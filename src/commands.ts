@@ -455,7 +455,7 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         params.shift()
-        return await sendText(math.evaluate(params.join('')).toString(), client, message, true)
+        return await sendText(math.evaluate(params.join(' ')).toString(), client, message, true)
       },
     ],
   },
