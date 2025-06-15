@@ -183,8 +183,8 @@ function chatIdResolver(message: wppconnect.Message) {
 
 async function splitMembersAndAdmins(client: wppconnect.Whatsapp, message: wppconnect.Message) {
   if (message.isGroupMsg) {
-    const admins = (await client.getGroupAdmins(message.from)) as wppconnect.Wid[]
-    const members = (await client.getGroupMembersIds(message.from)).filter((e) => {
+    const admins = (await client.getGroupAdmins(chatIdResolver(message))) as wppconnect.Wid[]
+    const members = (await client.getGroupMembersIds(chatIdResolver(message))).filter((e) => {
       for (const admin of admins) {
         return e.user !== admin.user
       }
@@ -260,7 +260,7 @@ ${list}`
           if (params.length <= 1 || params[1] === 'help') {
             const helpMsg = help(
               ['/ping all <alasan?>', '/ping admin <alasan?>', '/ping member <alasan?>'],
-              'Tag seluruh penghuni grup, atau admin/member saja.'
+              'Tag seluruh penghuni grup, atau admin/member saja'
             )
             return await sendText(helpMsg, client, message)
           }
@@ -400,6 +400,40 @@ ${list}`
     ],
   },
   'Menu Fun': {
+    '/jodoh': [
+      'Jodohkan member grup secara acak.',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        if (message.isGroupMsg) {
+          const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(['/jodoh <all|admin|member> <all|admin|member>'], 'Jodohkan member grup secara acak')
+            return await sendText(helpMsg, client, message)
+          }
+          const splitted = await splitMembersAndAdmins(client, message)
+          if (splitted) {
+            // Default: random member vs member
+            let group1: wppconnect.Id[] | wppconnect.Wid[] = splitted.members
+            let group2: wppconnect.Id[] | wppconnect.Wid[] = splitted.members
+            // Parse params for group selection
+            if (params[1] === 'admin') group1 = splitted.admins
+            if (params[2] === 'admin') group2 = splitted.admins
+            if (params[1] === 'all') group1 = splitted.admins.concat(splitted.members)
+            if (params[2] === 'all') group2 = splitted.admins.concat(splitted.members)
+            // Pick random from each group
+            const user1 = group1[Math.floor(Math.random() * group1.length)].user
+            let user2 = group2[Math.floor(Math.random() * group2.length)].user
+            // Avoid same user
+            let attempts = 0
+            while (user1 === user2 && group2.length > 1 && attempts < 5) {
+              user2 = group2[Math.floor(Math.random() * group2.length)].user
+              attempts++
+            }
+            const msg = `Saya jodohkan @${user1} dengan @${user2}.\n\nCie...💖😘`
+            return await sendText(msg, client, message)
+          }
+        }
+      },
+    ],
     '/kerangajaib': [
       '🐚 Puja Kerang Ajaib! ULOLOLOLOLOLOLOLOLOLO 👅 (alpha)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {

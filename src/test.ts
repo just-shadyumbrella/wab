@@ -1,3 +1,5 @@
+import { create, all } from 'mathjs'
+
 function parseCommand(input: string): string[] {
   const tokens: string[] = []
   let current = ''
@@ -29,4 +31,11 @@ function parseCommand(input: string): string[] {
   return tokens
 }
 
-console.log(parseCommand(''))
+
+const math = create(all)
+
+// ...existing code...
+const param = parseCommand('/math 1 GiB to MiB')
+param.shift()
+console.log(math.evaluate(param.join(' ')))
+// ...existing code...

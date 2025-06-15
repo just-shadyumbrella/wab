@@ -30,7 +30,7 @@ Info penggunaan cukup kirim perintah tanpa argumen.
 
 *Menu Lain-lain:*
 - [-] `/math` Pustaka mathjs.org.
-- [ ] `/sticker` Ubah gambar jadi stiker.
+- [-] `/sticker` Ubah gambar jadi stiker.
 - [ ] `/magick` Alat manipulasi gambar, mungkin bisa buat hd-in gambar.
 - [ ] `/ffmpeg` Alat processing media multi-fungsi.
 - [ ] `/yt-dlp` Alat download YouTube dan website lainnya.
