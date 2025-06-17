@@ -12,11 +12,13 @@ Info penggunaan cukup kirim perintah tanpa argumen.
 *Menu Grup:*
 - [x] `/ping` Tag seluruh penghuni grup.
 - [ ] `/info` Info grup sederhana.
+- [ ] `/undelete` Mencoba merekam pesan yang dihapus.
 - [ ] `/welcome` Setel salam sambutan untuk member baru. 👑
 - [ ] `/leave` Setel salam kepergian untuk member yang keluar. 👑
 - [x] `/open` Membuka grup; mengizinkan member untuk mengirim pesan. 👑
 - [x] `/close` Menutup grup; melarang member untuk mengirim pesan. 👑
 - [ ] `/warn` Memberi peringatan pada seorang member. 👑
+- [ ] `/role` Fitur eksperimental seperti role pada Discord. 👑
 - [x] `/kick` Mengeluarkan member. 👑
 - [ ] `/automsg` Otomatis kirim pesan ke grup pada jam tertentu. 👑
 - [ ] `/reply` Otomatis balas pesan yang mengandung kata tertentu. 👑
@@ -27,6 +29,7 @@ Info penggunaan cukup kirim perintah tanpa argumen.
 *Menu Fun:*
 - [-] `/jodoh` Jodohkan member grup secara acak.
 - [-] `/kerangajaib` 🐚 Puja Kerang Ajaib! ULOLOLOLOLOLOLOLOLOLO 👅
+- [x] `/percent` Seberapa persen keberuntungan kamu.
 
 *Menu Lain-lain:*
 - [-] `/math` Pustaka mathjs.org.

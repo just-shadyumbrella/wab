@@ -452,7 +452,7 @@ ${list}`
       },
     ],
     '/percent': [
-      'UNDOCUMENTED (alpha)',
+      'Seberapa persen keberuntungan kamu.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
@@ -465,6 +465,18 @@ ${list}`
     ],
   },
   'Menu Lainnya': {
+    '/math': [
+      'Pustaka mathjs.org (alpha: entahlah, coba aja pake)',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+        if (params.length <= 1 || params[1] === 'help') {
+          const helpMsg = help(['/math <expression>'], 'Selengkapnya: mathjs.org bagian `evaluate`')
+          return await sendText(helpMsg, client, message)
+        }
+        params.shift()
+        return await sendText(math.evaluate(params.join(' ')).toString(), client, message, true)
+      },
+    ],
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
@@ -509,18 +521,6 @@ ${list}`
             return await sendText(helpMsg, client, message)
           }
         }
-      },
-    ],
-    '/math': [
-      'Pustaka mathjs.org (alpha: entahlah, coba aja pake)',
-      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const params = parseCommand(message.body || '')
-        if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/math <expression>'], 'Selengkapnya: mathjs.org bagian `evaluate`')
-          return await sendText(helpMsg, client, message)
-        }
-        params.shift()
-        return await sendText(math.evaluate(params.join(' ')).toString(), client, message, true)
       },
     ],
   },

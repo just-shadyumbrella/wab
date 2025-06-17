@@ -64,6 +64,9 @@ try {
       setTimeout(tick, 10000)
     }
   })()
+  client.onRevokedMessage(async (message) => {
+    console.log('Revoked message:', message)
+  })
   client.onStateChange((state) => {
     if (state === 'CONNECTED') {
       const phoneNumber = process.env.PHONE_NUMBER
