@@ -1,4 +1,4 @@
-import fs, { mkdirSync, writeFileSync } from 'node:fs'
+import fs from 'node:fs'
 import path from 'node:path'
 import si from 'systeminformation'
 import ffmpeg from 'fluent-ffmpeg'
@@ -476,8 +476,8 @@ ${list}`
           message.type === wppconnect.MessageType.VIDEO ||
           message.type === wppconnect.MessageType.DOCUMENT
         ) {
-          mkdirSync('.tmp', { recursive: true })
-          let filePath = `.tmp/${crypto.randomUUID()}`
+          fs.mkdirSync('.tmp', { recursive: true })
+          const filePath = `.tmp/${crypto.randomUUID()}`
           await client.decryptAndSaveFile(message, filePath)
           const params = parseCommand(msg || '')
           const fit = params[1] === 'fit'
@@ -494,12 +494,14 @@ ${list}`
                 .on('end', () => resolve())
                 .on('error', (err) => reject(err))
                 .run()
-              filePath = `${filePath}.webp`
             })
           }
-          return await client.sendImageAsSticker(from, filePath, {
-            quotedMsg: from,
+          const result = await client.sendImageAsSticker(from, fit ? `${filePath}.webp` : filePath, {
+            quotedMsg: message.id,
           })
+          fs.rmSync(filePath, { force: true })
+          fs.rmSync(`${filePath}.webp`, { force: true })
+          return result
         } else {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
