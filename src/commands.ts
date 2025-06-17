@@ -1,6 +1,7 @@
-import fs from 'node:fs'
+import fs, { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import si from 'systeminformation'
+import ffmpeg from 'fluent-ffmpeg'
 import { config } from 'dotenv'
 import { create, all } from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
@@ -402,7 +403,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         if (message.isGroupMsg) {
           const params = parseCommand(message.body || '')
-          if (params.length <= 1 || params[1] === 'help') {
+          if (params.length <= 2 || params[1] === 'help') {
             const helpMsg = help(
               ['/jodoh <all|admin|member|@tag> <all|admin|member|@tag>'],
               'Jodohkan member grup secara acak'
@@ -430,7 +431,11 @@ ${list}`
           const user1 = getRandomUser(params[1])
           const user2 = getRandomUser(params[2])
 
-          return await sendText(`Saya jodohkan ${user1} dengan ${user2} dengan sejumlah kuota dibayar kasbon 💕`, client, message)
+          return await sendText(
+            `Saya jodohkan ${user1} dengan ${user2} dengan sejumlah kuota dibayar kasbon 💕`,
+            client,
+            message
+          )
         }
       },
     ],
@@ -463,29 +468,46 @@ ${list}`
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        if (message.quotedMsgId) message = await client.getMessageById(message.quotedMsgId || '')
-        if (message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.DOCUMENT) {
-          const mediaData = await client.downloadMedia(message)
+        const from = message.from
+        message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message
+        message.from = from
+        if (
+          message.type === wppconnect.MessageType.IMAGE ||
+          message.type === wppconnect.MessageType.VIDEO ||
+          message.type === wppconnect.MessageType.DOCUMENT
+        ) {
+          const mediaData = Buffer.from(await client.downloadMedia(message), 'base64')
           if (mediaData) {
-            return await client.sendImageAsSticker(chatIdResolver(message), mediaData, {
+            const filePath = `.tmp/${crypto.randomUUID()}`
+            writeFileSync(filePath, mediaData)
+            ffmpeg(filePath)
+              .input(filePath)
+              .outputOptions(['-y'])
+              .videoFilter(
+                '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
+              )
+              .outputOptions(['-pix_fmt bgra', '-lossless 1'])
+              .output(`${filePath}.webp`)
+              .run()
+            return await client.sendImageAsSticker(chatIdResolver(message), `${filePath}.webp`, {
               quotedMsg: message.id,
             })
           }
         } else {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['[gambar] /sticker', '[reply] /sticker'], 'UNDOCUMENTED')
+            const helpMsg = help(['[gambar] /sticker', '[reply] /sticker'], 'Untuk saat ini hanya bisa satu gambar')
             return await sendText(helpMsg, client, message)
           }
         }
       },
     ],
     '/math': [
-      'Pustaka mathjs.org (alpha: perintah ini masih belum sepenuhnya mencakup seluruh fitur mathjs)',
+      'Pustaka mathjs.org (alpha: entahlah, coba aja pake)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/math <expression>'], 'UNDOCUMENTED')
+          const helpMsg = help(['/math <expression>'], 'Selengkapnya: mathjs.org bagian `evaluate`')
           return await sendText(helpMsg, client, message)
         }
         params.shift()
