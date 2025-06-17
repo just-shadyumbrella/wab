@@ -1,4 +1,4 @@
-import fs, { writeFileSync } from 'node:fs'
+import fs, { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import si from 'systeminformation'
 import ffmpeg from 'fluent-ffmpeg'
@@ -468,31 +468,38 @@ ${list}`
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const from = message.from
+        const msg = message.content || message.body
+        const from = chatIdResolver(message)
         message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message
-        message.from = from
         if (
           message.type === wppconnect.MessageType.IMAGE ||
           message.type === wppconnect.MessageType.VIDEO ||
           message.type === wppconnect.MessageType.DOCUMENT
         ) {
-          const mediaData = Buffer.from(await client.downloadMedia(message), 'base64')
-          if (mediaData) {
-            const filePath = `.tmp/${crypto.randomUUID()}`
-            writeFileSync(filePath, mediaData)
-            ffmpeg(filePath)
-              .input(filePath)
-              .outputOptions(['-y'])
-              .videoFilter(
-                '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
-              )
-              .outputOptions(['-pix_fmt bgra', '-lossless 1'])
-              .output(`${filePath}.webp`)
-              .run()
-            return await client.sendImageAsSticker(chatIdResolver(message), `${filePath}.webp`, {
-              quotedMsg: message.id,
+          mkdirSync('.tmp', { recursive: true })
+          let filePath = `.tmp/${crypto.randomUUID()}`
+          await client.decryptAndSaveFile(message, filePath)
+          const params = parseCommand(msg || '')
+          const fit = params[1] === 'fit'
+          if (fit) {
+            await new Promise<void>((resolve, reject) => {
+              ffmpeg(filePath)
+                .input(filePath)
+                .outputOptions(['-y'])
+                .videoFilter(
+                  '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
+                )
+                .outputOptions(['-pix_fmt bgra', '-lossless 1'])
+                .output(`${filePath}.webp`)
+                .on('end', () => resolve())
+                .on('error', (err) => reject(err))
+                .run()
+              filePath = `${filePath}.webp`
             })
           }
+          return await client.sendImageAsSticker(from, filePath, {
+            quotedMsg: from,
+          })
         } else {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
