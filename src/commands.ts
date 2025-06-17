@@ -178,7 +178,7 @@ export function sendText(
   })
 }
 
-function chatIdResolver(message: wppconnect.Message) {
+export function chatIdResolver(message: wppconnect.Message) {
   return process.env.PHONE_NUMBER + '@c.us' === message.from ? message.to : message.from
 }
 
@@ -526,11 +526,31 @@ ${list}`
   },
 }
 
-interface Message2 extends wppconnect.Message {
-  quotedMsg?: wppconnect.Message
+// FLATTEN FOR FAST LOOKUP
+console.info('Collecting commands...')
+console.time('Commands collected')
+
+type CommandEntry = {
+  menu: string
+  description: string
+  handler: CommandHandler
+}
+export const commandTable: { [cmd: string]: CommandEntry } = {}
+for (const menuName of Object.keys(commands)) {
+  const menu = commands[menuName]
+  for (const cmd of Object.keys(menu)) {
+    const [description, handler] = menu[cmd]
+    commandTable[cmd] = {
+      menu: menuName,
+      description,
+      handler,
+    }
+  }
 }
 
-export type CommandHandler = (client: wppconnect.Whatsapp, message: wppconnect.Message) => Promise<wppconnect.Message>
-export type CommandList = { [key: string]: [string, CommandHandler] }
+console.timeEnd('Commands collected')
+
+type CommandHandler = (client: wppconnect.Whatsapp, message: wppconnect.Message) => Promise<wppconnect.Message>
+type CommandList = { [key: string]: [string, CommandHandler] }
 
 export default commands

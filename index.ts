@@ -1,32 +1,8 @@
 import wppconnect from '@wppconnect-team/wppconnect'
-import commands, { sendText, getSenderNumber, CommandHandler } from './src/commands.js'
+import commands, { sendText, getSenderNumber, chatIdResolver, commandTable } from './src/commands.js'
 
 // Start timer anchor
 const startTime = Date.now()
-
-console.info('Collecting commands...')
-console.time('Commands collected')
-
-// FLATTEN FOR FAST LOOKUP
-type CommandEntry = {
-  menu: string
-  description: string
-  handler: CommandHandler
-}
-const commandTable: { [cmd: string]: CommandEntry } = {}
-for (const menuName of Object.keys(commands)) {
-  const menu = commands[menuName]
-  for (const cmd of Object.keys(menu)) {
-    const [description, handler] = menu[cmd]
-    commandTable[cmd] = {
-      menu: menuName,
-      description,
-      handler,
-    }
-  }
-}
-
-console.timeEnd('Commands collected')
 
 const config: wppconnect.CreateOptions = {
   session: 'session',
@@ -83,7 +59,14 @@ try {
       const incomingCmd = i > -1 ? msg.substring(0, i) : msg
       const entry = commandTable[incomingCmd]
       if (entry) {
+        client.startTyping(chatIdResolver(message))
+        try {
+          await entry.handler(client, message)
+        } catch (err) {
+          console.error('onAnyMessage error:', err)
+        }
         await entry.handler(client, message)
+        client.stopTyping(chatIdResolver(message))
       } else {
         // This is owner command, usually hidden from menu
         if (process.env.OWNER_NUMBER?.split(',').includes(getSenderNumber(message))) {
