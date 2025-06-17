@@ -1,5 +1,6 @@
 name: My workflow W
 on: [workflow_dispatch]
+
 jobs:
   job:
     name: My Job
