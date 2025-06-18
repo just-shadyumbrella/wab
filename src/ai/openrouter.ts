@@ -24,22 +24,33 @@ const openai = new OpenAI({
   apiKey: process.env.OPEN_ROUTER,
 })
 
-export async function chat(charName: keyof typeof character, msg: string, modelOptions: OpenAI.ChatCompletionCreateParams) {
+export async function chat(
+  charName: keyof typeof character.en | keyof typeof character.id,
+  lang: keyof typeof character,
+  msg: string,
+  modelOptions: OpenAI.ChatCompletionCreateParams
+) {
+  const content =
+    lang === 'en'
+      ? `You're roleplaying to this character as accurate as possible, so make the conversation as you're them:
+
+${character.en[charName]}`
+      : `Kamu sedang memerankan karakter ini seakurat mungkin, jadi buat percakapan seolah kau adalah mereka:
+
+${character.id[charName]}`
   const completion = await openai.chat.completions.create({
     ...modelOptions,
     messages: [
       {
         role: 'system',
-        content: `You're roleplaying to this character as accurate as possible so make the conversation as you're them:
-
-${character[charName]}`,
+        content: content,
       },
       {
         role: 'user',
         content: msg,
       },
     ],
-    stream: false
+    stream: false,
   })
   console.log('Result:', completion)
   return (completion as OpenAI.ChatCompletion).choices[0].message.content

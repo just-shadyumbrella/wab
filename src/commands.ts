@@ -5,10 +5,12 @@ import ffmpeg from 'fluent-ffmpeg'
 import { config } from 'dotenv'
 import { create, all } from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
+import { ChatCompletionCreateParams } from 'openai/resources'
+import character from './ai/character.js'
 import { chat, Models } from './ai/openrouter.js'
 import { shutdown } from '../index.js'
-import { ChatCompletionCreateParams } from 'openai/resources'
 
+let lang: keyof typeof character = 'id'
 const modelOptions: ChatCompletionCreateParams = {
   model: Models.V3,
   temperature: 0.9, // Bikin lebih variatif
@@ -487,7 +489,7 @@ ${list}`
         }
         params.shift()
         try {
-          const chatResult = await chat('Ei', params.join(' '), modelOptions)
+          const chatResult = await chat('Ei', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
           await sendText('🤖 Ups, Ei kayaknya sedang sibuk 😅', client, message, true)
@@ -504,10 +506,10 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         try {
-          const chatResult = await chat('Shogun', params.join(' '), modelOptions)
+          const chatResult = await chat('Shogun', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
-          await sendText('🤖 Ups, Ei kayaknya sedang sibuk 😅', client, message, true)
+          await sendText('🤖 Ups, Shogun kayaknya sedang sibuk 😅', client, message, true)
           throw error
         }
       },
@@ -517,12 +519,12 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/lumine <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
+          const helpMsg = help(['/ShoEi <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
           return await sendText(helpMsg, client, message)
         }
         params.shift()
         try {
-          const chatResult = await chat('ShoEi', params.join(' '), modelOptions)
+          const chatResult = await chat('ShoEi', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
           await sendText('🤖 Ups, Ei kayaknya sedang sibuk 😅', client, message, true)
@@ -609,8 +611,17 @@ export const ownerCommands = {
       modelOptions.model = arg
       return result
     } else {
-      return await sendText(`${modelList}\n\nBeberapa model mungkin memang tidak cocok untuk roleplay`, client, message)
+      return await sendText(`${modelList}\n\nBeberapa model mungkin memang tidak cocok untuk roleplay`, client, message,false)
     }
+  },
+  '/lang': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+    const result = await sendText(`Current lang: \`${lang}\``, client, message)
+    const params = parseCommand(message.body || '')
+    const arg = params[1] as keyof typeof character
+    if (arg) {
+      lang = arg
+    }
+    return result
   },
   '/temp': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
     const result = await sendText(`Current temperature: \`${modelOptions.temperature}\``, client, message)
@@ -622,7 +633,7 @@ export const ownerCommands = {
     return result
   },
   '/max_t': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-    const result = await sendText(`Current selected model: \`${modelOptions.model}\``, client, message)
+    const result = await sendText(`Current token size: \`${modelOptions.max_completion_tokens}\``, client, message)
     const params = parseCommand(message.body || '')
     const arg = Number(params[1])
     if (arg) {
