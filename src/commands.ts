@@ -561,12 +561,13 @@ export const ownerCommands = {
   '/shutdown': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
     return await shutdown(client, message)
   },
-  '/setmodels': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+  '/setmodel': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
     const params = parseCommand(message.body || '')
-    try {
-      model = Models[params[1]]
+    const mdl = Models[params[1]]
+    if (mdl) {
+      model = mdl
       return await sendText(`Current selected model: ${model}`, client, message)
-    } catch (error) {
+    } else {
       return await sendText(`Models: \`\`\`${JSON.stringify(Models, null, 2)}\`\`\``, client, message)
     }
   },
