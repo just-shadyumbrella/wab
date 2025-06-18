@@ -10,7 +10,7 @@ import character from './ai/character.js'
 import { chat, Models } from './ai/openrouter.js'
 import { shutdown } from '../index.js'
 
-let lang: keyof typeof character = 'id'
+let lang: keyof typeof character = 'en'
 const modelOptions: ChatCompletionCreateParams = {
   model: Models.V3,
   temperature: 0.9, // Bikin lebih variatif
