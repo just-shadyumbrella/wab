@@ -180,7 +180,7 @@ export function sendText(
 }
 
 export function chatIdResolver(message: wppconnect.Message) {
-  return process.env.PHONE_NUMBER + '@c.us' === message.from ? message.to : message.from
+  return message.fromMe ? message.to : message.from
 }
 
 async function splitMembersAndAdmins(client: wppconnect.Whatsapp, message: wppconnect.Message) {
@@ -449,7 +449,7 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         params.shift()
-        return await sendText(kerangAjaib(params.join('')), client, message, true)
+        return await sendText(kerangAjaib(params.join('')), client, message)
       },
     ],
     '/percent': [
@@ -461,7 +461,7 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         params.shift()
-        return await sendText(`${randomBetween(0, 100)}%`, client, message, true)
+        return await sendText(`${randomBetween(0, 100)}%`, client, message)
       },
     ],
     '/lumine': [
