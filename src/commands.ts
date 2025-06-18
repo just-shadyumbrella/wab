@@ -5,8 +5,10 @@ import ffmpeg from 'fluent-ffmpeg'
 import { config } from 'dotenv'
 import { create, all } from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
-import { chat } from './ai/openrouter.js'
+import { chat, Models } from './ai/openrouter.js'
+import { shutdown } from '../index.js'
 
+let model: Models = Models.V3
 const math = create(all)
 
 config()
@@ -475,7 +477,7 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         params.shift()
-        const chatResult = await chat(0, params.join(' '))
+        const chatResult = await chat('Lumine', model, params.join(' '))
         return await sendText(chatResult ?? '🤖 Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
       },
     ],
@@ -488,7 +490,7 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         params.shift()
-        const chatResult = await chat(1, params.join(' '))
+        const chatResult = await chat('Noelle', model, params.join(' '))
         return await sendText(chatResult ?? '🤖 Ups, Noelle kayaknya sedang sibuk 😅', client, message, true)
       },
     ],
@@ -555,6 +557,21 @@ ${list}`
   },
 }
 
+export const ownerCommands = {
+  '/shutdown': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+    return await shutdown(client, message)
+  },
+  '/setmodels': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+    const params = parseCommand(message.body || '')
+    try {
+      model = Models[params[1]]
+      return await sendText(`Current selected model: ${model}`, client, message)
+    } catch (error) {
+      return await sendText(`Models: \`\`\`${JSON.stringify(Models, null, 2)}\`\`\``, client, message)
+    }
+  },
+}
+
 // FLATTEN FOR FAST LOOKUP
 console.info('Collecting commands...')
 console.time('Commands collected')
@@ -564,6 +581,7 @@ type CommandEntry = {
   description: string
   handler: CommandHandler
 }
+
 export const commandTable: { [cmd: string]: CommandEntry } = {}
 for (const menuName of Object.keys(commands)) {
   const menu = commands[menuName]

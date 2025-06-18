@@ -1,5 +1,7 @@
 import wppconnect from '@wppconnect-team/wppconnect'
-import commands, { sendText, getSenderNumber, chatIdResolver, commandTable } from './src/commands.js'
+import { sendText, getSenderNumber, chatIdResolver, commandTable, ownerCommands } from './src/commands.js'
+
+const owncmds = Object.keys(ownerCommands)
 
 // Start timer anchor
 const startTime = Date.now()
@@ -17,7 +19,7 @@ const config: wppconnect.CreateOptions = {
   },
 }
 
-async function shutdown(
+export async function shutdown(
   client: wppconnect.Whatsapp,
   //@ts-ignore
   message: wppconnect.Message = { from: process.env.PHONE_NUMBER || '' }
@@ -71,8 +73,12 @@ try {
       } else {
         // This is owner command, usually hidden from menu
         if (process.env.OWNER_NUMBER?.split(',').includes(getSenderNumber(message))) {
-          if (incomingCmd === '/shutdown') {
-            await shutdown(client, message)
+          try {
+            console.time('Owner request handled')
+            ownerCommands[incomingCmd](client, message)
+            console.timeEnd('Owner request handled')
+          } catch (err) {
+            console.error('Owner onAnyMessage error:', err)
           }
         }
       }
