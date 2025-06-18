@@ -24,13 +24,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPEN_ROUTER,
 })
 
-export async function chat(charName: keyof typeof character, model: Models, msg: string) {
+export async function chat(charName: keyof typeof character, msg: string, modelOptions: OpenAI.ChatCompletionCreateParams) {
   const completion = await openai.chat.completions.create({
-    model: model,
+    ...modelOptions,
     messages: [
       {
         role: 'system',
-        content: `Roleplay to this character as accurate as possible:
+        content: `You're roleplaying to this character as accurate as possible so make the conversation as you're them:
 
 ${character[charName]}`,
       },
@@ -39,14 +39,9 @@ ${character[charName]}`,
         content: msg,
       },
     ],
-    temperature: 0.9, // Bikin lebih variatif
-    // top_p: 0.95, // Sampling untuk kreativitas
-    frequency_penalty: 0, // Biasanya 0 untuk roleplay
-    presence_penalty: 0.2, // Dorong ide baru sedikit
-    max_completion_tokens: 768,
+    stream: false
   })
   console.log('Result:', completion)
-  return completion.choices[0].message.content
+  return (completion as OpenAI.ChatCompletion).choices[0].message.content
 }
-
 // chat('Hai, apa kabar?')
