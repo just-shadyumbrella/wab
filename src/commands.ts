@@ -502,7 +502,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/noelle <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
+          const helpMsg = help(['/Shogun <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
           return await sendText(helpMsg, client, message)
         }
         try {
