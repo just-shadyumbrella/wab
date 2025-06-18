@@ -30,13 +30,9 @@ export async function chat(charName: keyof typeof character, model: Models, msg:
     messages: [
       {
         role: 'system',
-        content: `Peranmu adalah memerankan karakter berikut secara akurat:
+        content: `Roleplay to this character as accurate as possible:
 
-${character[charName].description}
-
-Contoh dialog karakter:
-${character[charName].mes_example}
-`,
+${character[charName]}`,
       },
       {
         role: 'user',
@@ -53,4 +49,4 @@ ${character[charName].mes_example}
   return completion.choices[0].message.content
 }
 
-// chat('Hai Lumine, apa kabar?')
+// chat('Hai, apa kabar?')

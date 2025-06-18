@@ -468,8 +468,8 @@ ${list}`
     ],
   },
   'Karakter AI (experimental)': {
-    '/Lumine': [
-      'Protagonis perempuan dari game Genshin Impact.',
+    '/Ei': [
+      'Raiden Ei.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
@@ -477,12 +477,12 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         params.shift()
-        const chatResult = await chat('Lumine', model, params.join(' '))
+        const chatResult = await chat('Ei', model, params.join(' '))
         return await sendText(chatResult ?? '🤖 Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
       },
     ],
-    '/Noelle': [
-      'Seorang maid dari Knight of Favonius.',
+    '/Shogun': [
+      'Raiden Shogun.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
@@ -490,8 +490,21 @@ ${list}`
           return await sendText(helpMsg, client, message)
         }
         params.shift()
-        const chatResult = await chat('Noelle', model, params.join(' '))
+        const chatResult = await chat('Shogun', model, params.join(' '))
         return await sendText(chatResult ?? '🤖 Ups, Noelle kayaknya sedang sibuk 😅', client, message, true)
+      },
+    ],
+    '/ShoEi': [
+      'Raiden Shogun dan Ei.',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+        if (params.length <= 1 || params[1] === 'help') {
+          const helpMsg = help(['/lumine <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
+          return await sendText(helpMsg, client, message)
+        }
+        params.shift()
+        const chatResult = await chat('ShoEi', model, params.join(' '))
+        return await sendText(chatResult ?? '🤖 Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
       },
     ],
   },
@@ -557,6 +570,13 @@ ${list}`
   },
 }
 
+const modelList = (() => {
+  let list = '\n'
+  for (const model in Object.keys(Models)) {
+    list += `\n🖥️ ${model}: \`${Models[model]}\``
+  }
+  return list
+})()
 export const ownerCommands = {
   '/shutdown': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
     return await shutdown(client, message)
@@ -568,7 +588,7 @@ export const ownerCommands = {
       model = mdl
       return await sendText(`Current selected model: ${model}`, client, message)
     } else {
-      return await sendText(`Models: \`\`\`${JSON.stringify(Models, null, 2)}\`\`\``, client, message)
+      return await sendText(`Models:${modelList}`, client, message)
     }
   },
 }
