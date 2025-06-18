@@ -464,19 +464,34 @@ ${list}`
         return await sendText(`${randomBetween(0, 100)}%`, client, message)
       },
     ],
-    '/lumine': [
-      'Ayo bicara dengan Lumine! (experimental: Belum punya fitur memori)',
-      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const params = parseCommand(message.body || '')
-        if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/lumine <apa aja>'], 'UNDOCUMENTED')
-          return await sendText(helpMsg, client, message)
-        }
-        params.shift()
-        const chatResult = await chat(params.join(' '))
-        return await sendText(chatResult ?? 'Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
-      },
-    ]
+    'Karakter AI (experimental)': {
+      '/lumine': [
+        'Protagonis perempuan dari game Genshin Impact',
+        async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+          const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(['/lumine <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
+            return await sendText(helpMsg, client, message)
+          }
+          params.shift()
+          const chatResult = await chat(0, params.join(' '))
+          return await sendText(chatResult ?? '🤖 Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
+        },
+      ],
+      '/noelle': [
+        'Seorang maid dari Knight of Favonius',
+        async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+          const params = parseCommand(message.body || '')
+          if (params.length <= 1 || params[1] === 'help') {
+            const helpMsg = help(['/noelle <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
+            return await sendText(helpMsg, client, message)
+          }
+          params.shift()
+          const chatResult = await chat(1, params.join(' '))
+          return await sendText(chatResult ?? '🤖 Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
+        },
+      ],
+    },
   },
   'Menu Lainnya': {
     '/math': [

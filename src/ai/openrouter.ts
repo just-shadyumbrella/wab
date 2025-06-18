@@ -9,18 +9,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPEN_ROUTER,
 })
 
-export async function chat(msg: string) {
+export async function chat(charId: number, msg: string) {
   const completion = await openai.chat.completions.create({
     model: 'meta-llama/llama-3.3-8b-instruct:free',
     messages: [
       {
         role: 'system',
         content:
-          `You will roleplaying as this character accurately:
-${character.description}
+          `Peranmu adalah memerankan karakter berikut dengan akurat:
+${character[charId].description}
 
-Example Dialogs:
-${character.mes_example}
+Contoh dialog karakter:
+${character[charId].mes_example}
 `,
       },
       {
@@ -32,7 +32,7 @@ ${character.mes_example}
     top_p: 0.95, // Sampling untuk kreativitas
     frequency_penalty: 0, // Biasanya 0 untuk roleplay
     presence_penalty: 0.2, // Dorong ide baru sedikit
-    max_completion_tokens: 1024,
+    max_completion_tokens: 512,
   })
   console.log('Result:', completion)
   return completion.choices[0].message.content
