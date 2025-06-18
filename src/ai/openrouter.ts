@@ -16,7 +16,8 @@ export async function chat(charId: number, msg: string) {
       {
         role: 'system',
         content:
-          `Peranmu adalah memerankan karakter berikut dengan akurat:
+          `Peranmu adalah memerankan karakter berikut secara akurat:
+
 ${character[charId].description}
 
 Contoh dialog karakter:

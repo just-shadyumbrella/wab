@@ -52,7 +52,7 @@ try {
     }
   })
   client.onAnyMessage(async (message) => {
-    console.log('Retrieve message:', message)
+    console.log('onAnyMessage:', message)
     const msg = message.caption || message.body
     if (msg) {
       const i = msg.indexOf(' ')
@@ -61,7 +61,9 @@ try {
       if (entry) {
         client.startTyping(chatIdResolver(message))
         try {
+          console.time('Request handled')
           await entry.handler(client, message)
+          console.timeEnd('Request handled')
         } catch (err) {
           console.error('onAnyMessage error:', err)
         }

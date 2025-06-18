@@ -466,8 +466,8 @@ ${list}`
     ],
   },
   'Karakter AI (experimental)': {
-    '/lumine': [
-      'Protagonis perempuan dari game Genshin Impact',
+    '/Lumine': [
+      'Protagonis perempuan dari game Genshin Impact.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
@@ -479,8 +479,8 @@ ${list}`
         return await sendText(chatResult ?? '🤖 Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
       },
     ],
-    '/noelle': [
-      'Seorang maid dari Knight of Favonius',
+    '/Noelle': [
+      'Seorang maid dari Knight of Favonius.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
@@ -489,7 +489,7 @@ ${list}`
         }
         params.shift()
         const chatResult = await chat(1, params.join(' '))
-        return await sendText(chatResult ?? '🤖 Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
+        return await sendText(chatResult ?? '🤖 Ups, Noelle kayaknya sedang sibuk 😅', client, message, true)
       },
     ],
   },
@@ -538,7 +538,7 @@ ${list}`
             })
           }
           const result = await client.sendImageAsSticker(from, fit ? `${filePath}.webp` : filePath, {
-            quotedMsg: message.id,
+            quotedMsg: from,
           })
           fs.rmSync(filePath, { force: true })
           fs.rmSync(`${filePath}.webp`, { force: true })
