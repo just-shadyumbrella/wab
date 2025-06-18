@@ -584,7 +584,7 @@ export const ownerCommands = {
       model = mdl
       return await sendText(`Current selected model: ${model}`, client, message)
     } else {
-      return await sendText(`Models:\n\n${modelList}`, client, message)
+      return await sendText(`${modelList}`, client, message)
     }
   },
 }
