@@ -246,7 +246,7 @@ Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`. B
           const commandList = commands[menuHead] as CommandList
           let list = ''
           for (const cmd of Object.keys(commandList)) {
-            list += `- \`${cmd}\` ${commandList[cmd][0]}\n`
+            list += `- ❇️ \`${cmd}\` ${commandList[cmd][0]}\n`
           }
           msg += `
 *${menuHead}:*
@@ -527,7 +527,7 @@ ${list}`
           const chatResult = await chat('ShoEi', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
-          await sendText('🤖 Ups, Ei kayaknya sedang sibuk 😅', client, message, true)
+          await sendText('🤖 Ups, ShoEi kayaknya sedang sibuk 😅', client, message, true)
           throw error
         }
       },
@@ -596,7 +596,7 @@ ${list}`
 }
 
 const modelList = Object.entries(Models)
-  .map(([key, value]) => `🖥️ ${key}: \`${value}\``)
+  .map(([key, value]) => `- ${key}: \`${value}\``)
   .join('\n')
   .trim()
 export const ownerCommands = {
@@ -615,31 +615,28 @@ export const ownerCommands = {
     }
   },
   '/lang': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-    const result = await sendText(`Current lang: \`${lang}\``, client, message)
     const params = parseCommand(message.body || '')
     const arg = params[1] as keyof typeof character
     if (arg) {
       lang = arg
     }
-    return result
+    return await sendText(`Current lang: \`${lang}\``, client, message)
   },
   '/temp': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-    const result = await sendText(`Current temperature: \`${modelOptions.temperature}\``, client, message)
     const params = parseCommand(message.body || '')
     const arg = Number(params[1])
     if (arg) {
       modelOptions.temperature = arg
     }
-    return result
+    return await sendText(`Current temperature: \`${modelOptions.temperature}\``, client, message)
   },
   '/max_t': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-    const result = await sendText(`Current token size: \`${modelOptions.max_completion_tokens}\``, client, message)
     const params = parseCommand(message.body || '')
     const arg = Number(params[1])
     if (arg) {
       modelOptions.max_completion_tokens = arg
     }
-    return result
+    return await sendText(`Current token size: \`${modelOptions.max_completion_tokens}\``, client, message)
   },
 }
 
