@@ -271,7 +271,7 @@ ${list}`
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
             const helpMsg = help(
-              ['/ping all <alasan?>', '/ping admin <alasan?>', '/ping member <alasan?>'],
+              [`${params[0]} all <alasan?>`, `${params[0]} admin <alasan?>`, `${params[0]} member <alasan?>`],
               'Tag seluruh penghuni grup, atau admin/member saja'
             )
             return await sendText(helpMsg, client, message)
@@ -328,7 +328,7 @@ ${list}`
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
             const helpMsg = help(
-              ['/kick @username', '/kick @username1 @username2 <...>', '[reply] /kick'],
+              [`${params[0]} @username`, `${params[0]} @username1 @username2 <...>`, `[reply] ${params[0]}`],
               'Keluarkan admin'
             )
             return await sendText(helpMsg, client, message)
@@ -359,7 +359,7 @@ ${list}`
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
             const helpMsg = help(
-              ['/promote @username', '/promote @username1 @username2 <...>', '[reply] /promote'],
+              [`${params[0]} @username`, `${params[0]} @username1 @username2 <...>`, `[reply] ${params[0]}`],
               'Memberikan tahta admin'
             )
             return await sendText(helpMsg, client, message)
@@ -388,7 +388,7 @@ ${list}`
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
             const helpMsg = help(
-              ['/demote @username', '/demote @username1 @username2 <...>', '[reply] /demote'],
+              [`${params[0]} @username`, `${params[0]} @username1 @username2 <...>`, `[reply] ${params[0]}`],
               'Kudeta admin'
             )
             return await sendText(helpMsg, client, message)
@@ -419,7 +419,7 @@ ${list}`
           const params = parseCommand(message.body || '')
           if (params.length <= 2 || params[1] === 'help') {
             const helpMsg = help(
-              ['/jodoh <all|admin|member|@tag> <all|admin|member|@tag>'],
+              [`${params[0]} <all|admin|member|@tag> <all|admin|member|@tag>`],
               'Jodohkan member grup secara acak'
             )
             return await sendText(helpMsg, client, message)
@@ -458,7 +458,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/kerangajaib <pertanyaan>'], 'ALPHA')
+          const helpMsg = help([`${params[0]} <pertanyaan>`], 'ALPHA')
           return await sendText(helpMsg, client, message)
         }
         params.shift()
@@ -470,7 +470,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/percent <pertanyaan>'], 'UNDOCUMENTED')
+          const helpMsg = help([`${params[0]} <pertanyaan>`], 'UNDOCUMENTED')
           return await sendText(helpMsg, client, message)
         }
         params.shift()
@@ -484,7 +484,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/Ei <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
+          const helpMsg = help([`${params[0]} <chat apa aja>`], 'Masih eksperimental, belum punya fitur memori.')
           return await sendText(helpMsg, client, message)
         }
         params.shift()
@@ -492,7 +492,7 @@ ${list}`
           const chatResult = await chat('Ei', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
-          await sendText('🤖 Ups, Ei kayaknya sedang sibuk 😅', client, message, true)
+          await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
           throw error
         }
       },
@@ -502,14 +502,15 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/Shogun <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
+          const helpMsg = help([`${params[0]} <chat apa aja>`], 'Masih eksperimental, belum punya fitur memori.')
           return await sendText(helpMsg, client, message)
         }
+        params.shift()
         try {
           const chatResult = await chat('Shogun', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
-          await sendText('🤖 Ups, Shogun kayaknya sedang sibuk 😅', client, message, true)
+          await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
           throw error
         }
       },
@@ -519,7 +520,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/ShoEi <chat apa aja>'], 'Masih eksperimental, belum punya fitur memori.')
+          const helpMsg = help([`${params[0]} <chat apa aja>`], 'Masih eksperimental, belum punya fitur memori.')
           return await sendText(helpMsg, client, message)
         }
         params.shift()
@@ -527,7 +528,7 @@ ${list}`
           const chatResult = await chat('ShoEi', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
-          await sendText('🤖 Ups, ShoEi kayaknya sedang sibuk 😅', client, message, true)
+          await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
           throw error
         }
       },
@@ -539,7 +540,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help(['/math <expression>'], 'Selengkapnya: mathjs.org bagian `evaluate`')
+          const helpMsg = help([`${params[0]}<expression>`], 'Selengkapnya: mathjs.org bagian `evaluate`')
           return await sendText(helpMsg, client, message)
         }
         params.shift()
@@ -586,7 +587,10 @@ ${list}`
         } else {
           const params = parseCommand(message.body || '')
           if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(['[gambar] /sticker', '[reply] /sticker'], 'Untuk saat ini hanya bisa satu gambar')
+            const helpMsg = help(
+              [`[gambar] ${params[0]}`, `[reply] ${params[0]}`],
+              'Untuk saat ini hanya bisa satu gambar'
+            )
             return await sendText(helpMsg, client, message)
           }
         }
@@ -611,7 +615,12 @@ export const ownerCommands = {
       modelOptions.model = arg
       return result
     } else {
-      return await sendText(`${modelList}\n\nBeberapa model mungkin memang tidak cocok untuk roleplay`, client, message,false)
+      return await sendText(
+        `${modelList}\n\nBeberapa model mungkin memang tidak cocok untuk roleplay`,
+        client,
+        message,
+        false
+      )
     }
   },
   '/lang': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
