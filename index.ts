@@ -65,7 +65,6 @@ try {
         } catch (err) {
           console.error('onAnyMessage error:', err)
         }
-        await entry.handler(client, message)
         client.stopTyping(chatIdResolver(message))
       } else {
         // This is owner command, usually hidden from menu
