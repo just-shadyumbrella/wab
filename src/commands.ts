@@ -570,13 +570,9 @@ ${list}`
   },
 }
 
-const modelList = (() => {
-  let list = '\n'
-  for (const model in Object.keys(Models)) {
-    list += `\n🖥️ ${model}: \`${Models[model]}\``
-  }
-  return list
-})()
+const modelList = Object.entries(Models)
+  .map(([key, value]) => `🖥️ ${key}: \`${value}\``)
+  .join('\n').trim()
 export const ownerCommands = {
   '/shutdown': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
     return await shutdown(client, message)
@@ -588,7 +584,7 @@ export const ownerCommands = {
       model = mdl
       return await sendText(`Current selected model: ${model}`, client, message)
     } else {
-      return await sendText(`Models:${modelList}`, client, message)
+      return await sendText(`Models:\n\n${modelList}`, client, message)
     }
   },
 }
