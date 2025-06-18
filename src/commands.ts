@@ -244,7 +244,7 @@ Silahkan kirim perintah \`/help\` untuk list perintah.`,
           const commandList = commands[menuHead] as CommandList
           let list = ''
           for (const cmd of Object.keys(commandList)) {
-            list += `- ❇️ \`${cmd}\` ${commandList[cmd][0]}\n`
+            list += `❇️ \`${cmd}\` ${commandList[cmd][0]}\n`
           }
           msg += `
 *📝 ${menuHead}:*
