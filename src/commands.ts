@@ -236,9 +236,7 @@ Silahkan kirim perintah \`/help\` untuk list perintah.`,
     '/help': [
       'Menampilkan pesan ini.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        let msg = `*📝 LIST PERINTAH*
-
-Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`. Beberapa perintah dapat digunakan tanpa argumen.
+        let msg = `Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`. Beberapa perintah dapat digunakan tanpa argumen.
 
 > 👑 Hanya Admin
 `
@@ -249,7 +247,7 @@ Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`. B
             list += `- ❇️ \`${cmd}\` ${commandList[cmd][0]}\n`
           }
           msg += `
-*${menuHead}:*
+*📝 ${menuHead}:*
 ${list}`
         }
 
