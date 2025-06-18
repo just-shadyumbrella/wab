@@ -5,6 +5,7 @@ import ffmpeg from 'fluent-ffmpeg'
 import { config } from 'dotenv'
 import { create, all } from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
+import { chat } from './ai/openrouter.js'
 
 const math = create(all)
 
@@ -463,6 +464,19 @@ ${list}`
         return await sendText(`${randomBetween(0, 100)}%`, client, message, true)
       },
     ],
+    '/lumine': [
+      'Ayo bicara dengan Lumine! (experimental: Belum punya fitur memori)',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+        if (params.length <= 1 || params[1] === 'help') {
+          const helpMsg = help(['/lumine <apa aja>'], 'UNDOCUMENTED')
+          return await sendText(helpMsg, client, message)
+        }
+        params.shift()
+        const chatResult = await chat(params.join(' '))
+        return await sendText(chatResult ?? 'Ups, Lumine kayaknya sedang sibuk 😅', client, message, true)
+      },
+    ]
   },
   'Menu Lainnya': {
     '/math': [
