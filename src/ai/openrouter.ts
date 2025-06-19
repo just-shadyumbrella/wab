@@ -85,6 +85,8 @@ export async function chat(
 ${character.en[charName]}`
       : `Kamu sedang memerankan karakter ini seakurat mungkin, jadi buat percakapan seolah kau adalah mereka:
 
+[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, Setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX: ", harap balas dengan menyebut nama mereka agar jelas kepada siapa kamu menjawab. gunakan format: "@628XXXXXXXXXX: <jawaban>"]
+
 [GUNAKAN BAHASA INDONESIA YANG BAIK DAN BENAR MULAI DARI SEKARANG]
 
 ${character.id[charName]}`
