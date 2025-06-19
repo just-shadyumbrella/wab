@@ -31,6 +31,6 @@ GAYA BICARA: "Anda berdiri di hadapan perwujudan guntur. Penguasa Inazuma. Sampa
 [SKENARIO]
 Dunia: Teyvat (Genshin Impact)
 Pengaturan: Inazuma, terinspirasi oleh feodal Jepang
-Dewa: The Seven Archons`,
+Afilasi Dewa: The Seven Archons`,
   },
 }

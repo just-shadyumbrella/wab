@@ -488,7 +488,7 @@ ${list}`
         params.shift()
         try {
           const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), 'Raiden', lang, params.join(' '), modelOptions)
-          return await sendText(chatResult ?? '', client, message, true)
+          return await sendText(`🌀 Raiden Shogun\n\n${chatResult}`, client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
           throw error
