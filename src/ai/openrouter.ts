@@ -67,6 +67,18 @@ export enum Models {
   Maverick = 'meta-llama/llama-4-maverick:free',
 }
 
+const apiKeys =
+  process.env.OPEN_ROUTER_KEYS?.split(',')
+    .map((k) => k.trim())
+    .filter(Boolean) || []
+let currentKeyIndex = 0
+
+function getNextApiKey() {
+  const key = apiKeys[currentKeyIndex]
+  currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length
+  return key
+}
+
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPEN_ROUTER,
@@ -78,7 +90,8 @@ export async function chat(
   charName: CharName,
   lang: keyof typeof character,
   msg: string,
-  modelOptions: OpenAI.ChatCompletionCreateParams
+  modelOptions: OpenAI.ChatCompletionCreateParams,
+  retries = apiKeys.length // Jumlah percobaan maksimal sesuai jumlah key
 ) {
   msg = `@${user}: ${msg}`
   const content =
@@ -94,23 +107,44 @@ ${character.id[charName]}`
 
   const memoryKey = getMemoryKey(room, lang, charName)
   const history = memorySlots.get(memoryKey) || []
-  const options: OpenAI.ChatCompletionCreateParams = {
-    ...modelOptions,
-    messages: [
-      { role: 'system', content: content },
-      ...history, // ← Tambahkan seluruh memori sebelumnya
-      { role: 'user', content: msg }, // ← Tambahkan pesan terbaru
-    ],
-    stream: false,
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const apiKey = getNextApiKey()
+    const openai = new OpenAI({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: apiKey,
+    })
+
+    try {
+      const options: OpenAI.ChatCompletionCreateParams = {
+        ...modelOptions,
+        messages: [
+          { role: 'system', content: content },
+          ...history, // ← Tambahkan seluruh memori sebelumnya
+          { role: 'user', content: msg }, // ← Tambahkan pesan terbaru
+        ],
+        stream: false,
+      }
+      console.log('OpenAI:', options)
+      const completion = await openai.chat.completions.create(options)
+      const response = completion.choices[0].message.content
+
+      // Update memori dengan pesan baru dan balasan dari AI
+      updateMemory(room, lang, charName, 'user', msg)
+      updateMemory(room, lang, charName, 'assistant', response || '')
+
+      return response
+    } catch (err: any) {
+      const key = apiKey.slice(0, 16) + '***' + apiKey.slice(-8)
+      console.warn(`API Key [${apiKey}] failed:`, err?.response?.status || err?.message)
+      // Kalau error bukan karena quota/rate limit, lempar error langsung
+      if (err?.response?.status !== 429 && err?.response?.status !== 401) {
+        throw err
+      }
+      // Kalau quota habis/rate limited, coba key berikutnya
+    }
   }
-  console.log('OpenAI:', options)
-  const completion = await openai.chat.completions.create(options)
-  const response = completion.choices[0].message.content
-
-  // Update memori dengan pesan baru dan balasan dari AI
-  updateMemory(room, lang, charName, 'user', msg)
-  updateMemory(room, lang, charName, 'assistant', response || '')
-
-  return response
+  throw new Error('All API keys exhausted or failed.')
 }
+
 
