@@ -574,9 +574,9 @@ export const ownerCommands = {
     const arg = Models[params[1]]
     if (arg) {
       modelOptions.model = arg
-      const result = await sendText(`Current selected model: \`${modelOptions.model}\``, client, message)
-      return result
+      return await sendText(`Current selected model: \`${modelOptions.model}\``, client, message)
     } else {
+      await sendText(`Current selected model: \`${modelOptions.model}\``, client, message)
       return await sendText(
         `${modelList}\n\nBeberapa model mungkin memang tidak cocok untuk roleplay`,
         client,
