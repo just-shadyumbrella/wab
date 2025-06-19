@@ -570,11 +570,11 @@ export const ownerCommands = {
     return await shutdown(client, message)
   },
   '/model': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-    const result = await sendText(`Current selected model: \`${modelOptions.model}\``, client, message)
     const params = parseCommand(message.body || '')
     const arg = Models[params[1]]
     if (arg) {
       modelOptions.model = arg
+      const result = await sendText(`Current selected model: \`${modelOptions.model}\``, client, message)
       return result
     } else {
       return await sendText(
