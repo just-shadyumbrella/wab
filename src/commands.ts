@@ -562,7 +562,7 @@ ${list}`
 }
 
 const modelList = Object.entries(Models)
-  .map(([key, value]) => `- ${key}: \`${value}\``)
+  .map(([key, value]) => `*${key}*: \`${value}\``)
   .join('\n')
   .trim()
 export const ownerCommands = {
