@@ -267,7 +267,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         if (message.isGroupMsg) {
           const params = parseCommand(message.body || '')
-          if (params.length <= 1 || params[1] === 'help') {
+          if (params.length<= 1 || params[1] === 'help') {
             const helpMsg = help(
               [`${params[0]} all <alasan?>`, `${params[0]} admin <alasan?>`, `${params[0]} member <alasan?>`],
               'Tag seluruh penghuni grup, atau admin/member saja'
@@ -417,7 +417,7 @@ ${list}`
           const params = parseCommand(message.body || '')
           if (params.length <= 2 || params[1] === 'help') {
             const helpMsg = help(
-              [`${params[0]} <all|admin|member|@tag> <all|admin|member|@tag>`],
+              [`${params[0]} <all|admin|member|@tag><all|admin|member|@tag>`],
               'Jodohkan member grup secara acak'
             )
             return await sendText(helpMsg, client, message)
@@ -530,8 +530,7 @@ ${list}`
               ffmpeg(filePath)
                 .input(filePath)
                 .outputOptions(['-y'])
-                .videoFilter(
-                  '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
+                .videoFilter( '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
                 )
                 .outputOptions(['-pix_fmt bgra', '-lossless 1'])
                 .output(`${filePath}.webp`)
@@ -602,12 +601,16 @@ export const ownerCommands = {
     return await sendText(`Current temperature: \`${modelOptions.temperature}\``, client, message)
   },
   '/memory': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+    let msg = `Current memory slot: \`${getMemorySlot()}\``
     const params = parseCommand(message.body || '')
     const arg = Number(params[1])
     if (arg) {
       setMemorySlot(arg)
-    } else if (params[1] === 'reset') resetMemorySlot(params[2] as keyof typeof character, params[3] as CharName)
-    return await sendText(`Current memory slot: \`${getMemorySlot()}\``, client, message)
+    } else if (params[1] === 'reset') {
+      resetMemorySlot(params[2] as keyof typeof character, params[3] as CharName)
+      msg += ` (reset: ${params[2]}, ${params[3]})`
+    }
+    return await sendText(msg, client, message)
   },
   '/max_t': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
     const params = parseCommand(message.body || '')
