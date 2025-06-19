@@ -119,7 +119,7 @@ ${character.id[charName]}`
 
         return response
       } catch (error) {
-        console.error(`Error using key ${ky}: ${error}`)
+        console.error(`Error using key ${ky}:`, error)
       }
     }
     throw new Error('All keys are exhausted or failed')
