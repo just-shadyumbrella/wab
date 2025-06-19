@@ -14,10 +14,14 @@ export function getMemorySlot() {
   return MEMORY_SLOT_LIMIT
 }
 
+export function resetMemorySlot(lang: keyof typeof character, charName: CharName) {
+  memorySlots.delete(getMemoryKey(lang, charName))
+}
+
 // Map untuk menyimpan percakapan per karakter → key: `${lang}:${charName}`
 const memorySlots = new Map<string, { role: 'user' | 'assistant'; content: string }[]>()
 
-type CharName = keyof typeof character.en | keyof typeof character.id
+export type CharName = keyof typeof character.en | keyof typeof character.id
 
 function getMemoryKey(lang: keyof typeof character, charName: CharName) {
   return `${lang}:${charName}`
@@ -40,7 +44,6 @@ function updateMemory(
     history.shift() // Buang paling lama (FIFO)
   }
 }
-
 
 /**
  * Models are subject to change depends on free availability and suitness for roleplay chats.

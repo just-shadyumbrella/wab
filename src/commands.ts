@@ -7,7 +7,7 @@ import { create, all } from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
 import { ChatCompletionCreateParams } from 'openai/resources'
 import character from './ai/character.js'
-import { chat, getMemorySlot, Models, setMemorySlot } from './ai/openrouter.js'
+import { CharName, chat, getMemorySlot, Models, resetMemorySlot, setMemorySlot } from './ai/openrouter.js'
 import { shutdown } from '../index.js'
 
 let lang: keyof typeof character = 'id'
@@ -606,7 +606,7 @@ export const ownerCommands = {
     const arg = Number(params[1])
     if (arg) {
       setMemorySlot(arg)
-    }
+    } else if (params[1] === 'reset') resetMemorySlot(params[2] as keyof typeof character, params[3] as CharName)
     return await sendText(`Current memory slot: \`${getMemorySlot()}\``, client, message)
   },
   '/max_t': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
