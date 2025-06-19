@@ -489,7 +489,7 @@ ${list}`
         params.shift()
         try {
           const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), charName, lang, params.join(' '), modelOptions)
-          return await sendText(`🌀 Raiden Shogun\n\n${chatResult}`, client, message, true)
+          return await sendText(`*🌀 Raiden Shogun*\n\n${chatResult}`, client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${charName} kayaknya sedang sibuk 😅`, client, message, true)
           throw error
@@ -508,7 +508,7 @@ ${list}`
         params.shift()
         try {
           const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), charName, lang, params.join(' '), modelOptions)
-          return await sendText(`🌀 Raiden Shogun\n\n${chatResult}`, client, message, true)
+          return await sendText(`*🎎 Wanderer*\n\n${chatResult}`, client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${charName} kayaknya sedang sibuk 😅`, client, message, true)
           throw error
