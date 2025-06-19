@@ -72,11 +72,13 @@ const openai = new OpenAI({
 })
 
 export async function chat(
+  user: string,
   charName: CharName | keyof typeof character.id,
   lang: keyof typeof character,
   msg: string,
   modelOptions: OpenAI.ChatCompletionCreateParams
 ) {
+  msg = `${user}: ${msg}`
   const content =
     lang === 'en'
       ? `You're roleplaying to this character as accurate as possible, so make the conversation as you're them:

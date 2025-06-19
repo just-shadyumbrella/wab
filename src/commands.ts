@@ -487,7 +487,7 @@ ${list}`
         }
         params.shift()
         try {
-          const chatResult = await chat('Raiden', lang, params.join(' '), modelOptions)
+          const chatResult = await chat(getSenderNumber(message), 'Raiden', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
