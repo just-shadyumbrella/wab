@@ -609,7 +609,7 @@ export const ownerCommands = {
       msg = `Current memory slot: \`${getMemorySlot()}\``
     } else if (params[1] === 'reset') {
       resetMemorySlot(chatIdResolver(message), params[2] as keyof typeof character, params[3] as CharName)
-      msg += ` (reset: ${params[2]}, ${params[3]})`
+      msg += ` (reset: \`${params[2]}\`, \`${params[3]}\`)`
     }
     return await sendText(msg, client, message)
   },
