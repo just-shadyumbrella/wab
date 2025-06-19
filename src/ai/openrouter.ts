@@ -14,8 +14,8 @@ export function getMemorySlot() {
   return MEMORY_SLOT_LIMIT
 }
 
-export function resetMemorySlot(lang: keyof typeof character, charName: CharName) {
-  memorySlots.delete(getMemoryKey(lang, charName))
+export function resetMemorySlot(room: string, lang: keyof typeof character, charName: CharName) {
+  memorySlots.delete(getMemoryKey(room, lang, charName))
 }
 
 // Map untuk menyimpan percakapan per karakter → key: `${lang}:${charName}`
@@ -23,18 +23,19 @@ const memorySlots = new Map<string, { role: 'user' | 'assistant'; content: strin
 
 export type CharName = keyof typeof character.en | keyof typeof character.id
 
-function getMemoryKey(lang: keyof typeof character, charName: CharName) {
-  return `${lang}:${charName}`
+function getMemoryKey(room: string, lang: keyof typeof character, charName: CharName) {
+  return `${room}:${lang}:${charName}`
 }
 
 // Tambahkan pesan ke memori karakter (dengan batas maksimal MEMORY_SLOT_LIMIT)
 function updateMemory(
+  room: string, 
   lang: keyof typeof character,
   charName: CharName,
   role: 'user' | 'assistant',
   content: string
 ) {
-  const key = getMemoryKey(lang, charName)
+  const key = getMemoryKey(room, lang, charName)
   if (!memorySlots.has(key)) {
     memorySlots.set(key, [])
   }
@@ -73,7 +74,8 @@ const openai = new OpenAI({
 
 export async function chat(
   user: string,
-  charName: CharName | keyof typeof character.id,
+  room: string,
+  charName: CharName,
   lang: keyof typeof character,
   msg: string,
   modelOptions: OpenAI.ChatCompletionCreateParams
@@ -86,9 +88,11 @@ export async function chat(
 ${character.en[charName]}`
       : `Kamu sedang memerankan karakter ini seakurat mungkin, jadi buat percakapan seolah kau adalah mereka:
 
+[GUNAKAN BAHASA INDONESIA YANG BAIK DAN BENAR MULAI DARI SEKARANG]
+
 ${character.id[charName]}`
 
-  const memoryKey = getMemoryKey(lang, charName)
+  const memoryKey = getMemoryKey(room, lang, charName)
   const history = memorySlots.get(memoryKey) || []
   const options: OpenAI.ChatCompletionCreateParams = {
     ...modelOptions,
@@ -104,8 +108,8 @@ ${character.id[charName]}`
   const response = completion.choices[0].message.content
 
   // Update memori dengan pesan baru dan balasan dari AI
-  updateMemory(lang, charName, 'user', msg)
-  updateMemory(lang, charName, 'assistant', response || '')
+  updateMemory(room, lang, charName, 'user', msg)
+  updateMemory(room, lang, charName, 'assistant', response || '')
 
   return response
 }

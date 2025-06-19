@@ -18,7 +18,7 @@ const modelOptions: ChatCompletionCreateParams = {
   // top_p: 0.95, // Sampling untuk kreativitas
   frequency_penalty: 0, // Biasanya 0 untuk roleplay
   presence_penalty: 0.2, // Dorong ide baru sedikit
-  max_completion_tokens: 512,
+  max_tokens: 512,
   stream: false,
 }
 
@@ -487,7 +487,7 @@ ${list}`
         }
         params.shift()
         try {
-          const chatResult = await chat(getSenderNumber(message), 'Raiden', lang, params.join(' '), modelOptions)
+          const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), 'Raiden', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
@@ -606,8 +606,9 @@ export const ownerCommands = {
     const arg = Number(params[1])
     if (arg) {
       setMemorySlot(arg)
+      msg = `Current memory slot: \`${getMemorySlot()}\``
     } else if (params[1] === 'reset') {
-      resetMemorySlot(params[2] as keyof typeof character, params[3] as CharName)
+      resetMemorySlot(chatIdResolver(message), params[2] as keyof typeof character, params[3] as CharName)
       msg += ` (reset: ${params[2]}, ${params[3]})`
     }
     return await sendText(msg, client, message)
@@ -616,9 +617,9 @@ export const ownerCommands = {
     const params = parseCommand(message.body || '')
     const arg = Number(params[1])
     if (arg) {
-      modelOptions.max_completion_tokens = arg
+      modelOptions.max_tokens = arg
     }
-    return await sendText(`Current token size: \`${modelOptions.max_completion_tokens}\``, client, message)
+    return await sendText(`Current token size: \`${modelOptions.max_tokens}\``, client, message)
   },
 }
 
