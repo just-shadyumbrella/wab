@@ -7,12 +7,12 @@ import { create, all } from 'mathjs'
 import wppconnect from '@wppconnect-team/wppconnect'
 import { ChatCompletionCreateParams } from 'openai/resources'
 import character from './ai/character.js'
-import { chat, Models } from './ai/openrouter.js'
+import { chat, getMemorySlot, Models, setMemorySlot } from './ai/openrouter.js'
 import { shutdown } from '../index.js'
 
-let lang: keyof typeof character = 'en'
+let lang: keyof typeof character = 'id'
 const modelOptions: ChatCompletionCreateParams = {
-  model: Models.V3,
+  model: Models.Instruct,
   temperature: 0.9, // Bikin lebih variatif
   messages: [],
   // top_p: 0.95, // Sampling untuk kreativitas
@@ -236,7 +236,7 @@ Silahkan kirim perintah \`/help\` untuk list perintah.`,
     '/help': [
       'Menampilkan pesan ini.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        let msg = `Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`. Beberapa perintah dapat digunakan tanpa argumen.
+        let msg = `*Info penggunaan cukup kirim perintah tanpa argumen, atau \`/[perintah] help\`. Beberapa perintah dapat digunakan tanpa argumen.*
 
 > 👑 Hanya Admin
 `
@@ -477,8 +477,8 @@ ${list}`
     ],
   },
   'Karakter AI (experimental)': {
-    '/Ei': [
-      'Raiden Ei.',
+    '/Raiden': [
+      'Yang Mulia Electro Archon: Raiden Shogun dan Ei.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
@@ -487,43 +487,7 @@ ${list}`
         }
         params.shift()
         try {
-          const chatResult = await chat('Ei', lang, params.join(' '), modelOptions)
-          return await sendText(chatResult ?? '', client, message, true)
-        } catch (error) {
-          await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
-          throw error
-        }
-      },
-    ],
-    '/Shogun': [
-      'Raiden Shogun.',
-      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const params = parseCommand(message.body || '')
-        if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help([`${params[0]} <chat apa aja>`], 'Masih eksperimental, belum punya fitur memori.')
-          return await sendText(helpMsg, client, message)
-        }
-        params.shift()
-        try {
-          const chatResult = await chat('Shogun', lang, params.join(' '), modelOptions)
-          return await sendText(chatResult ?? '', client, message, true)
-        } catch (error) {
-          await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
-          throw error
-        }
-      },
-    ],
-    '/ShoEi': [
-      'Raiden Shogun dan Ei.',
-      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const params = parseCommand(message.body || '')
-        if (params.length <= 1 || params[1] === 'help') {
-          const helpMsg = help([`${params[0]} <chat apa aja>`], 'Masih eksperimental, belum punya fitur memori.')
-          return await sendText(helpMsg, client, message)
-        }
-        params.shift()
-        try {
-          const chatResult = await chat('ShoEi', lang, params.join(' '), modelOptions)
+          const chatResult = await chat('Raiden', lang, params.join(' '), modelOptions)
           return await sendText(chatResult ?? '', client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
@@ -636,6 +600,14 @@ export const ownerCommands = {
       modelOptions.temperature = arg
     }
     return await sendText(`Current temperature: \`${modelOptions.temperature}\``, client, message)
+  },
+  '/memory': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+    const params = parseCommand(message.body || '')
+    const arg = Number(params[1])
+    if (arg) {
+      setMemorySlot(arg)
+    }
+    return await sendText(`Current memory slot: \`${getMemorySlot()}\``, client, message)
   },
   '/max_t': async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
     const params = parseCommand(message.body || '')
