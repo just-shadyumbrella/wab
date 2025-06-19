@@ -516,7 +516,7 @@ ${list}`
       },
     ],
     '/Wanderer': [
-      'Seorang boneka yang entah kemana ia berkelana sekarang.',
+      'Seorang boneka yang entah kemana ia berkelana sekarang. (Versi Serenitea Pot)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
         if (params.length <= 1 || params[1] === 'help') {
