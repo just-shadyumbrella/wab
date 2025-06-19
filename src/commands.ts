@@ -218,6 +218,22 @@ async function isAdmin(client: wppconnect.Whatsapp, message: wppconnect.Message)
   return false
 }
 
+/**
+(⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄) → lebih imut, blushing intens.
+
+(｡•́‿•̀｡) → malu ringan, lebih kalem.
+
+(//ω//) → blushing shy gaya Jepang klasik.
+
+(≧◡≦) → malu tapi senang.
+
+(>///<) → lebih pendek dan universal.
+ */
+function blushReact() {
+  const blush = ['\\(⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄)/', '(｡•́‿•̀｡)', '(｡^‿^｡)', '(//ω//)', '(≧◡≦)', '(>///<)']
+  return blush[Math.floor(Math.random() * blush.length)]
+}
+
 /* COMMANDS */
 const commands = {
   'Menu Utama': {
@@ -444,7 +460,10 @@ ${list}`
           const user2 = getRandomUser(params[2])
 
           return await sendText(
-            `Saya jodohkan ${user1} dengan ${user2} dengan sejumlah kuota dibayar kasbon 💕`,
+            `*💌 Lamaran*
+
+🗣️ ${user1}: Aku suka sama kamu ${user2}! Mohon berpacaranlah denganku! 💓
+💟${user2}: 💕${blushReact()}💕`,
             client,
             message
           )
