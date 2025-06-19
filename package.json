@@ -1,6 +1,6 @@
 {
   "name": "wab",
-  "version": "0.1.5",
+  "version": "0.1.5.1",
   "description": "WAB WAb Wab wab",
   "type": "module",
   "main": "index.ts",

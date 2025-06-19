@@ -83,13 +83,13 @@ export async function chat(
       ? `You're roleplaying to this character as accurate as possible, so make the conversation as you're them:
 
 ${character.en[charName]}`
-      : `Kamu sedang memerankan karakter ini seakurat mungkin, jadi buat percakapan seolah kau adalah mereka:
+      : `[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, Setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX: ", harap balas dengan menyebut nama mereka agar jelas kepada siapa kamu menjawab.]
 
-[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, Setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX: ", harap balas dengan menyebut nama mereka agar jelas kepada siapa kamu menjawab. gunakan format: "@628XXXXXXXXXX: <jawaban>"]
+[Kamu sedang memerankan karakter ini seakurat mungkin, jadi buat percakapan seolah kau adalah mereka:]
 
-[GUNAKAN BAHASA INDONESIA YANG BAIK DAN BENAR MULAI DARI SEKARANG]
+${character.id[charName]}
 
-${character.id[charName]}`
+[GUNAKAN BAHASA INDONESIA YANG BAIK DAN BENAR MULAI DARI SEKARANG]`
 
   if (keys) {
     for (const key of keys) {
