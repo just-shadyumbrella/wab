@@ -90,8 +90,7 @@ ${character.id[charName]}`
 
   const memoryKey = getMemoryKey(lang, charName)
   const history = memorySlots.get(memoryKey) || []
-
-  const completion = await openai.chat.completions.create({
+  const options: OpenAI.ChatCompletionCreateParams = {
     ...modelOptions,
     messages: [
       { role: 'system', content: content },
@@ -99,8 +98,9 @@ ${character.id[charName]}`
       { role: 'user', content: msg }, // ← Tambahkan pesan terbaru
     ],
     stream: false,
-  })
-
+  }
+  console.log('OpenAI:', options)
+  const completion = await openai.chat.completions.create(options)
   const response = completion.choices[0].message.content
 
   // Update memori dengan pesan baru dan balasan dari AI
