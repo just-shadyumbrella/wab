@@ -78,7 +78,7 @@ export async function chat(
   msg: string,
   modelOptions: OpenAI.ChatCompletionCreateParams
 ) {
-  msg = `${user}: ${msg}`
+  msg = `@${user}: ${msg}`
   const content =
     lang === 'en'
       ? `You're roleplaying to this character as accurate as possible, so make the conversation as you're them:
