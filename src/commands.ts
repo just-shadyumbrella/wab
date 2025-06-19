@@ -18,7 +18,7 @@ const modelOptions: ChatCompletionCreateParams = {
   // top_p: 0.95, // Sampling untuk kreativitas
   frequency_penalty: 0, // Biasanya 0 untuk roleplay
   presence_penalty: 0.2, // Dorong ide baru sedikit
-  max_tokens: 512,
+  max_tokens: 768,
   stream: false,
 }
 
@@ -485,12 +485,32 @@ ${list}`
           const helpMsg = help([`${params[0]} <chat apa aja>`], 'Masih eksperimental, belum punya fitur memori.')
           return await sendText(helpMsg, client, message)
         }
+        const charName = params[0].slice(1) as CharName
         params.shift()
         try {
-          const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), 'Raiden', lang, params.join(' '), modelOptions)
+          const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), charName, lang, params.join(' '), modelOptions)
           return await sendText(`🌀 Raiden Shogun\n\n${chatResult}`, client, message, true)
         } catch (error) {
-          await sendText(`🤖 Ups, ${params[0].slice(1)} kayaknya sedang sibuk 😅`, client, message, true)
+          await sendText(`🤖 Ups, ${charName} kayaknya sedang sibuk 😅`, client, message, true)
+          throw error
+        }
+      },
+    ],
+    '/Wanderer': [
+      'Seorang boneka yang entah kemana ia berkelana sekarang.',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+        if (params.length <= 1 || params[1] === 'help') {
+          const helpMsg = help([`${params[0]} <chat apa aja>`], 'Masih eksperimental, belum punya fitur memori.')
+          return await sendText(helpMsg, client, message)
+        }
+        const charName = params[0].slice(1) as CharName
+        params.shift()
+        try {
+          const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), charName, lang, params.join(' '), modelOptions)
+          return await sendText(`🌀 Raiden Shogun\n\n${chatResult}`, client, message, true)
+        } catch (error) {
+          await sendText(`🤖 Ups, ${charName} kayaknya sedang sibuk 😅`, client, message, true)
           throw error
         }
       },
