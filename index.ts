@@ -54,9 +54,9 @@ try {
     }
   })
   client.onAnyMessage(async (message) => {
-    console.log('onAnyMessage:', message)
     const msg = message.caption || message.body || ''
     if (msg.slice(0, 1) === '/') {
+      console.log('onAnyMessage:', message)
       const i = msg.indexOf(' ')
       const incomingCmd = i > -1 ? msg.substring(0, i) : msg
       const entry = commandTable[incomingCmd]
