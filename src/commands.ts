@@ -12,7 +12,7 @@ import { shutdown } from '../index.js'
 
 let lang: keyof typeof character = 'id'
 const modelOptions: ChatCompletionCreateParams = {
-  model: Models.Instruct,
+  model: Models.V3,
   temperature: 0.9, // Bikin lebih variatif
   messages: [],
   // top_p: 0.95, // Sampling untuk kreativitas
