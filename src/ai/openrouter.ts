@@ -60,7 +60,7 @@ function modelResponseFix(user: string, content: string): string {
   // 2. User mention replacement
   // Replace unformatted mentions of the user unless preceded by @, also with the literal word "user"
   const userPattern = new RegExp(`(?<!@)${escapedUser}\\b`, 'g')
-  const genericUserPattern = /\buser\b/g
+  const genericUserPattern = /\buser\b|\{\{user\}\}/g
 
   let mentionFixApplied = false, userFixApplied = false
   result = result
@@ -81,8 +81,16 @@ function modelResponseFix(user: string, content: string): string {
     console.warn('`user` mention fix has been made.')
   }
 
-  // 3. Remove leading and trailing parentheses
+  // 3. Remove leading and trailing spaces (+2)
   let originalResult = result
+  result = result.replace(/ {2,}/g, '')
+
+  if (originalResult !== result) {
+    console.warn('Parenthesis fix has been made.')
+  }
+
+  // 3. Remove leading and trailing spaces in paragraphs
+  originalResult = result
   result = result.replace(/^\(|\)$/g, '')
 
   if (originalResult !== result) {

@@ -22,7 +22,7 @@ export async function shutdown(
   //@ts-ignore
   message: wppconnect.Message = { from: process.env.PHONE_NUMBER || '' }
 ) {
-  await sendText('Sayonara!', client, message, false)
+  await sendText('🤖 Sayonara!', client, message, false)
   console.warn('Shutdown triggered')
   client.close()
   console.info('Client closed, finalizing...')

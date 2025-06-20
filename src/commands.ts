@@ -452,7 +452,7 @@ ${list}`
               case 'member':
                 return '@' + memberList[Math.floor(Math.random() * memberList.length)]
               default:
-                return type.startsWith('@') ? type : null
+                return type
             }
           }
 
@@ -462,8 +462,8 @@ ${list}`
           return await sendText(
             `*💌 Lamaran*
 
-🗣️ ${user1}: Aku suka sama kamu ${user2}! Mohon berpacaranlah denganku! 💓
-💟${user2}: 💕${blushReact()}💕`,
+🗣️ ${user1}: Aku suka sama kamu *${user2}!* Mohon berpacaranlah denganku! 💓
+💟 ${user2}: 💕${blushReact()}💕`,
             client,
             message
           )
