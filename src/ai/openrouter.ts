@@ -81,16 +81,21 @@ function modelResponseFix(user: string, content: string): string {
     console.warn('`user` mention fix has been made.')
   }
 
-  // 3. Remove parentheses at start and end of the string
-  const originalResult = result
-  result = result.replace(/^\(/, '').replace(/\)$/, '')
+  // 3. Remove leading and trailing parentheses
+  let originalResult = result
+  result = result.replace(/^\(|\)$/g, '')
 
   if (originalResult !== result) {
     console.warn('Parenthesis fix has been made.')
   }
 
-  // 4. Remove leading and trailing parentheses
-  result = result.replace(/^\(|\)$/g, '')
+  // 4. Fix dash 
+  originalResult = result
+  result = result.replaceAll(' - ', '—')
+
+  if (originalResult !== result) {
+    console.warn('Dash fix has been made.')
+  }
 
   return result
 }
