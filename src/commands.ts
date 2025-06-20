@@ -13,12 +13,12 @@ import { shutdown } from '../index.js'
 let lang: keyof typeof character = 'id'
 const modelOptions: ChatCompletionCreateParams = {
   model: Models.V3,
-  temperature: 0.9, // Bikin lebih variatif
+  temperature: 0.7, // Bikin lebih variatif
   messages: [],
   // top_p: 0.95, // Sampling untuk kreativitas
   frequency_penalty: 0, // Biasanya 0 untuk roleplay
   presence_penalty: 0.2, // Dorong ide baru sedikit
-  max_tokens: 768,
+  max_tokens: 512,
   stream: false,
 }
 

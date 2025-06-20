@@ -46,42 +46,55 @@ function updateMemory(
   }
 }
 
-function modelResponseFix(user: string, content: string) {
-  const boldFix = content.replaceAll('**', '<b>')
-  const italicFix = boldFix.replaceAll('*', '<i>')
+// Markdown to WhatsApp format
+function modelResponseFix(user: string, content: string): string {
+  // Escape user for regex
+  const escapedUser = user.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-  const userMentionFix = (() => {
-    // Escape user string for RegExp
-    const escapedUser = user.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const pattern = new RegExp(`(?<!@)${escapedUser}\\b`)
-    if (pattern.test(italicFix)) {
-      console.warn('User mention fix has been made.')
-      return italicFix.replace(pattern, `@${user}`)
-    }
-    return italicFix
-  })()
+  // 1. Markdown to WhatsApp format (bold & italic)
+  // Replace bold (**text**) → *text*
+  let result = content.replace(/\*\*(.*?)\*\*/g, '*$1*')
+  // Replace italic (*text*) → _text_
+  result = result.replace(/\*(.*?)\*/g, '_$1_')
 
-  const parenthesis = (() => {
-    const pattern = /^\(/g,
-      pattern2 = /\)$/g
-    let result = userMentionFix
-    let changed = false
-    if (pattern.test(result)) {
-      changed = true
-      result = result.replace(pattern, `\`@${user}\``)
-    }
-    if (pattern2.test(result)) {
-      changed = true
-      result = result.replace(pattern2, `\`@${user}\``)
-    }
-    if (changed) {
-      console.warn('Parenthesis fix has been made.')
-    }
-    return result
-  })()
+  // 2. User mention replacement
+  // Replace unformatted mentions of the user unless preceded by @, also with the literal word "user"
+  const userPattern = new RegExp(`(?<!@)${escapedUser}\\b`, 'g')
+  const genericUserPattern = /\buser\b/g
 
-  return parenthesis.replaceAll('<b>', '*').replaceAll('<i>', '_')
+  let mentionFixApplied = false, userFixApplied = false
+  result = result
+    .replace(userPattern, () => {
+      mentionFixApplied = true
+      return `@${user}`
+    })
+    .replace(genericUserPattern, () => {
+      mentionFixApplied = true
+      return `@${user}`
+    })
+
+  if (mentionFixApplied) {
+    console.warn('User mention `@628XXXXXXXXXX` fix has been made.')
+  }
+
+  if (userFixApplied) {
+    console.warn('`user` mention fix has been made.')
+  }
+
+  // 3. Remove parentheses at start and end of the string
+  const originalResult = result
+  result = result.replace(/^\(/, '').replace(/\)$/, '')
+
+  if (originalResult !== result) {
+    console.warn('Parenthesis fix has been made.')
+  }
+
+  // 4. Remove leading and trailing parentheses
+  result = result.replace(/^\(|\)$/g, '')
+
+  return result
 }
+
 
 /**
  * Models are subject to change depends on free availability and suitness for roleplay chats.
@@ -119,7 +132,7 @@ export async function chat(
       ? `You're roleplaying to this character as accurate as possible, so make the conversation as you're them:
 
 ${character.en[charName]}`
-      : `[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, Setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX", harap balas dengan menyebut nama mereka ("@628XXXXXXXXXX") agar jelas kepada siapa kamu menjawab.]
+      : `[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX", harap balas dengan menyebut nama mereka ("@628XXXXXXXXXX") agar jelas kepada siapa kamu menjawab.]
 
 [Kamu sedang memerankan karakter ini seakurat mungkin, jadi buat percakapan seolah kau adalah mereka:]
 
