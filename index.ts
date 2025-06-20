@@ -1,8 +1,6 @@
 import wppconnect from '@wppconnect-team/wppconnect'
 import { sendText, getSenderNumber, resolveIncomingChatId, commandTable, ownerCommands } from './src/commands.js'
 
-const owncmds = Object.keys(ownerCommands)
-
 // Start timer anchor
 const startTime = Date.now()
 
@@ -28,7 +26,7 @@ export async function shutdown(
   console.warn('Shutdown triggered')
   client.close()
   console.info('Client closed, finalizing...')
-  process.exit(0)
+  return process.exit(0)
 }
 
 try {
@@ -43,13 +41,13 @@ try {
     }
   })()
   client.onRevokedMessage(async (message) => {
-    console.log('Revoked message:', message)
+    return console.log('Revoked message:', message)
   })
-  client.onStateChange((state) => {
+  client.onStateChange(async (state) => {
     if (state === 'CONNECTED') {
       const phoneNumber = process.env.PHONE_NUMBER
       if (phoneNumber) {
-        client.sendText(phoneNumber + '@c.us', 'Automatic client successfully connected.')
+        return await client.sendText(phoneNumber + '@c.us', `Automatic client successfully connected at ${Date}.`)
       }
     }
   })
@@ -68,6 +66,7 @@ try {
           console.timeEnd('Request handled')
         } catch (err) {
           console.error('onAnyMessage error:', err)
+          throw err
         }
         client.stopTyping(resolveIncomingChatId(message))
       } else {
@@ -79,6 +78,7 @@ try {
             console.timeEnd('Owner request handled')
           } catch (err) {
             console.error('Owner onAnyMessage error:', err)
+            throw err
           }
         }
       }

@@ -46,6 +46,34 @@ function updateMemory(
   }
 }
 
+function modelResponseFix(user: string, content: string) {
+  const boldFix = content.replaceAll('**', '<b>')
+  const italicFix = boldFix.replaceAll('*', '<i>')
+
+  const userMentionFix = (() => {
+    let string = ''
+    const pattern = new RegExp(`(?<!@)${user}\b`)
+    if (pattern.test(italicFix)) {
+      console.warn('User mention fix has been made.')
+      string = italicFix.replace(pattern, `@${user}`)
+    }
+    return string
+  })()
+
+  const parenthesis = (() => {
+    let string = ''
+    const pattern = /^\(/g,
+      pattern2 = /\)$/g
+    if (pattern.test(userMentionFix) || pattern2.test(userMentionFix)) {
+      console.warn('Parenthesis fix has been made.')
+      string = userMentionFix.replace(pattern, '`@${user}`').replace(pattern2, '`@${user}`')
+    }
+    return string
+  })()
+
+  return parenthesis.replaceAll('<b>', '*').replaceAll('<i>', '_')
+}
+
 /**
  * Models are subject to change depends on free availability and suitness for roleplay chats.
  */
@@ -77,13 +105,12 @@ export async function chat(
   msg: string,
   modelOptions: OpenAI.ChatCompletionCreateParams
 ) {
-  msg = `@${user}: ${msg}`
   const content =
     lang === 'en'
       ? `You're roleplaying to this character as accurate as possible, so make the conversation as you're them:
 
 ${character.en[charName]}`
-      : `[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, Setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX: ", harap balas dengan menyebut nama mereka agar jelas kepada siapa kamu menjawab.]
+      : `[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, Setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX: ", harap balas dengan menyebut nama mereka ("@628XXXXXXXXXX") agar jelas kepada siapa kamu menjawab.]
 
 [Kamu sedang memerankan karakter ini seakurat mungkin, jadi buat percakapan seolah kau adalah mereka:]
 
@@ -107,19 +134,19 @@ ${character.id[charName]}
           messages: [
             { role: 'system', content: content },
             ...history, // ← Tambahkan seluruh memori sebelumnya
-            { role: 'user', content: msg }, // ← Tambahkan pesan terbaru
+            { role: 'user', content: `@${user}: ${msg}` }, // ← Tambahkan pesan terbaru
           ],
           stream: false,
         }
         console.log('OpenAI:', options)
         const completion = await openai.chat.completions.create(options)
-        const response = completion.choices[0].message.content
+        const ctn = completion.choices[0].message.content
 
         // Update memori dengan pesan baru dan balasan dari AI
         updateMemory(room, lang, charName, 'user', msg)
-        updateMemory(room, lang, charName, 'assistant', response || '')
+        updateMemory(room, lang, charName, 'assistant', ctn || '')
 
-        return response
+        return modelResponseFix(user, ctn || '')
       } catch (error) {
         console.error(`Error using key ${ky}:`, error)
       }
