@@ -51,24 +51,33 @@ function modelResponseFix(user: string, content: string) {
   const italicFix = boldFix.replaceAll('*', '<i>')
 
   const userMentionFix = (() => {
-    let string = ''
-    const pattern = new RegExp(`(?<!@)${user}\b`)
+    // Escape user string for RegExp
+    const escapedUser = user.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const pattern = new RegExp(`(?<!@)${escapedUser}\\b`)
     if (pattern.test(italicFix)) {
       console.warn('User mention fix has been made.')
-      string = italicFix.replace(pattern, `@${user}`)
+      return italicFix.replace(pattern, `@${user}`)
     }
-    return string
+    return italicFix
   })()
 
   const parenthesis = (() => {
-    let string = ''
     const pattern = /^\(/g,
       pattern2 = /\)$/g
-    if (pattern.test(userMentionFix) || pattern2.test(userMentionFix)) {
-      console.warn('Parenthesis fix has been made.')
-      string = userMentionFix.replace(pattern, '`@${user}`').replace(pattern2, '`@${user}`')
+    let result = userMentionFix
+    let changed = false
+    if (pattern.test(result)) {
+      changed = true
+      result = result.replace(pattern, `\`@${user}\``)
     }
-    return string
+    if (pattern2.test(result)) {
+      changed = true
+      result = result.replace(pattern2, `\`@${user}\``)
+    }
+    if (changed) {
+      console.warn('Parenthesis fix has been made.')
+    }
+    return result
   })()
 
   return parenthesis.replaceAll('<b>', '*').replaceAll('<i>', '_')
@@ -110,7 +119,7 @@ export async function chat(
       ? `You're roleplaying to this character as accurate as possible, so make the conversation as you're them:
 
 ${character.en[charName]}`
-      : `[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, Setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX: ", harap balas dengan menyebut nama mereka ("@628XXXXXXXXXX") agar jelas kepada siapa kamu menjawab.]
+      : `[PERLU DIINGAT: Kamu berbicara dengan banyak {{user}}, Setiap pesan dari pengguna selalu diawali dengan "@628XXXXXXXXXX", harap balas dengan menyebut nama mereka ("@628XXXXXXXXXX") agar jelas kepada siapa kamu menjawab.]
 
 [Kamu sedang memerankan karakter ini seakurat mungkin, jadi buat percakapan seolah kau adalah mereka:]
 
