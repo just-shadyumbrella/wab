@@ -185,10 +185,10 @@ export function sendText(
   msg: string,
   client: wppconnect.Whatsapp,
   message: wppconnect.Message,
-  quoted: boolean = true
+  quoted: 'string'|boolean = true
 ) {
   return client.sendText(chatIdResolver(message), msg, {
-    quotedMsg: quoted ? message.id : undefined,
+    quotedMsg: typeof quoted === 'string' ? quoted : message.id,
   })
 }
 
@@ -552,7 +552,7 @@ ${list}`
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const msg = message.content || message.body
-        const from = chatIdResolver(message)
+        const msgFrom = message // incomingCmd
         message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message
         if (
           message.type === wppconnect.MessageType.IMAGE ||
@@ -578,8 +578,8 @@ ${list}`
                 .run()
             })
           }
-          const result = await client.sendImageAsSticker(from, fit ? `${filePath}.webp` : filePath, {
-            quotedMsg: from,
+          const result = await client.sendImageAsSticker(chatIdResolver(message), fit ? `${filePath}.webp` : filePath, {
+            quotedMsg: chatIdResolver(msgFrom),
           })
           fs.rmSync(filePath, { force: true })
           fs.rmSync(`${filePath}.webp`, { force: true })
