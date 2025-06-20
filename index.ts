@@ -1,5 +1,5 @@
 import wppconnect from '@wppconnect-team/wppconnect'
-import { sendText, getSenderNumber, chatIdResolver, commandTable, ownerCommands } from './src/commands.js'
+import { sendText, getSenderNumber, resolveIncomingChatId, commandTable, ownerCommands } from './src/commands.js'
 
 const owncmds = Object.keys(ownerCommands)
 
@@ -61,7 +61,7 @@ try {
       const incomingCmd = i > -1 ? msg.substring(0, i) : msg
       const entry = commandTable[incomingCmd]
       if (entry) {
-        client.startTyping(chatIdResolver(message))
+        client.startTyping(resolveIncomingChatId(message))
         try {
           console.time('Request handled')
           await entry.handler(client, message)
@@ -69,7 +69,7 @@ try {
         } catch (err) {
           console.error('onAnyMessage error:', err)
         }
-        client.stopTyping(chatIdResolver(message))
+        client.stopTyping(resolveIncomingChatId(message))
       } else {
         // This is owner command, usually hidden from menu
         if (process.env.OWNER_NUMBER?.split(',').includes(getSenderNumber(message))) {

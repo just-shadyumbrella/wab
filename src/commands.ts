@@ -187,18 +187,18 @@ export function sendText(
   message: wppconnect.Message,
   quoted: 'string'|boolean = true
 ) {
-  return client.sendText(chatIdResolver(message), msg, {
+  return client.sendText(resolveIncomingChatId(message), msg, {
     quotedMsg: typeof quoted === 'string' ? quoted : message.id,
   })
 }
 
-export function chatIdResolver(message: wppconnect.Message) {
+export function resolveIncomingChatId(message: wppconnect.Message) {
   return message.fromMe ? message.to : message.from
 }
 
 async function splitMembersAndAdmins(client: wppconnect.Whatsapp, message: wppconnect.Message) {
   if (message.isGroupMsg) {
-    const chatId = chatIdResolver(message)
+    const chatId = resolveIncomingChatId(message)
     const admins = (await client.getGroupAdmins(chatId)) as wppconnect.Wid[]
     const adminUsers = new Set(admins.map((a) => a.user)) // More efficient lookup
     const members = (await client.getGroupMembersIds(chatId)).filter((e) => !adminUsers.has(e.user))
@@ -208,7 +208,7 @@ async function splitMembersAndAdmins(client: wppconnect.Whatsapp, message: wppco
 
 async function isAdmin(client: wppconnect.Whatsapp, message: wppconnect.Message) {
   if (message.isGroupMsg) {
-    const admins = (await client.getGroupAdmins(chatIdResolver(message))) as wppconnect.Wid[]
+    const admins = (await client.getGroupAdmins(resolveIncomingChatId(message))) as wppconnect.Wid[]
     for (const admin of admins) {
       if (admin.user === getSenderNumber(message)) {
         return true
@@ -359,7 +359,7 @@ ${list}`
             false
           )
           for (const param of params) {
-            await client.removeParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
+            await client.removeParticipant(resolveIncomingChatId(message), param.replace('@', '') + '@c.us')
           }
           if (params.length > 1) params[params.length - 1] = 'dan ' + params[params.length - 1]
           return result
@@ -383,7 +383,7 @@ ${list}`
             params.push(getSenderNumber(await client.getMessageById(message.quotedMsgId || '')))
           }
           for (const param of params) {
-            await client.promoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
+            await client.promoteParticipant(resolveIncomingChatId(message), param.replace('@', '') + '@c.us')
           }
           if (params.length > 1) params[params.length - 1] = 'dan ' + params[params.length - 1]
           return await sendText(
@@ -412,7 +412,7 @@ ${list}`
             params.push(getSenderNumber(await client.getMessageById(message.quotedMsgId || '')))
           }
           for (const param of params) {
-            await client.demoteParticipant(chatIdResolver(message), param.replace('@', '') + '@c.us')
+            await client.demoteParticipant(resolveIncomingChatId(message), param.replace('@', '') + '@c.us')
           }
           if (params.length > 1) params[params.length - 1] = 'dan ' + params[params.length - 1]
           return await sendText(
@@ -507,7 +507,7 @@ ${list}`
         const charName = params[0].slice(1) as CharName
         params.shift()
         try {
-          const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), charName, lang, params.join(' '), modelOptions)
+          const chatResult = await chat(getSenderNumber(message), resolveIncomingChatId(message), charName, lang, params.join(' '), modelOptions)
           return await sendText(`*🌀 Raiden Shogun*\n\n${chatResult}`, client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${charName} kayaknya sedang sibuk 😅`, client, message, true)
@@ -526,7 +526,7 @@ ${list}`
         const charName = params[0].slice(1) as CharName
         params.shift()
         try {
-          const chatResult = await chat(getSenderNumber(message), chatIdResolver(message), charName, lang, params.join(' '), modelOptions)
+          const chatResult = await chat(getSenderNumber(message), resolveIncomingChatId(message), charName, lang, params.join(' '), modelOptions)
           return await sendText(`*🎎 Wanderer*\n\n${chatResult}`, client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${charName} kayaknya sedang sibuk 😅`, client, message, true)
@@ -552,7 +552,7 @@ ${list}`
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const msg = message.content || message.body
-        const msgFrom = message // incomingCmd
+        const msgFrom = message.id // incomingCmd
         message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message
         if (
           message.type === wppconnect.MessageType.IMAGE ||
@@ -578,8 +578,8 @@ ${list}`
                 .run()
             })
           }
-          const result = await client.sendImageAsSticker(chatIdResolver(message), fit ? `${filePath}.webp` : filePath, {
-            quotedMsg: chatIdResolver(msgFrom),
+          const result = await client.sendImageAsSticker(resolveIncomingChatId(message), fit ? `${filePath}.webp` : filePath, {
+            quotedMsg: msgFrom
           })
           fs.rmSync(filePath, { force: true })
           fs.rmSync(`${filePath}.webp`, { force: true })
@@ -647,7 +647,7 @@ export const ownerCommands = {
       setMemorySlot(arg)
       msg = `Current memory slot: \`${getMemorySlot()}\``
     } else if (params[1] === 'reset') {
-      resetMemorySlot(chatIdResolver(message), params[2] as keyof typeof character, params[3] as CharName)
+      resetMemorySlot(resolveIncomingChatId(message), params[2] as keyof typeof character, params[3] as CharName)
       msg += ` (reset: \`${params[2]}\`, \`${params[3]}\`)`
     }
     return await sendText(msg, client, message)
