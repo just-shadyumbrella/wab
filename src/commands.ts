@@ -9,6 +9,7 @@ import { ChatCompletionCreateParams } from 'openai/resources'
 import character from './ai/character.js'
 import { CharName, chat, getMemorySlot, Models, resetMemorySlot, setMemorySlot } from './ai/openrouter.js'
 import { shutdown } from '../index.js'
+import { cai } from './db.js'
 
 let lang: keyof typeof character = 'id'
 const modelOptions: ChatCompletionCreateParams = {
@@ -185,7 +186,7 @@ export function sendText(
   msg: string,
   client: wppconnect.Whatsapp,
   message: wppconnect.Message,
-  quoted: 'string'|boolean = true
+  quoted: 'string' | boolean = true
 ) {
   return client.sendText(resolveIncomingChatId(message), msg, {
     quotedMsg: typeof quoted === 'string' ? quoted : message.id,
@@ -283,7 +284,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         if (message.isGroupMsg) {
           const params = parseCommand(message.body || '')
-          if (params.length<= 1 || params[1] === 'help') {
+          if (params.length <= 1 || params[1] === 'help') {
             const helpMsg = help(
               [`${params[0]} all <alasan?>`, `${params[0]} admin <alasan?>`, `${params[0]} member <alasan?>`],
               'Tag seluruh penghuni grup, atau admin/member saja'
@@ -496,6 +497,38 @@ ${list}`
     ],
   },
   'Karakter AI (experimental)': {
+    '/new': [
+      'Buat room baru (chat ini saja).',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+        if (params.length <= 2 || params[1] === 'help') {
+          const helpMsg = help([`${params[0]} <nama_room> <karakter>`], 'UNDOCUMENTED')
+          return await sendText(helpMsg, client, message)
+        }
+        const roomName = params[1],
+          charName = params[2] as keyof typeof character.en | keyof typeof character.id
+        if (charName) {
+          const char = [...Object.keys(character.id), ...Object.keys(character.en)]
+          if (char.includes(charName)) {
+            try {
+              await cai.new(roomName, resolveIncomingChatId(message), charName, lang)
+              return await sendText(`Room \`${roomName}\` dibuat.`, client, message)
+            } catch (error) {
+              const err = error as Error
+              await sendText(err.message, client, message)
+              throw err
+            }
+          } else {
+            return await sendText(`Karakter \`${charName}\` tidak tersedia.`, client, message)
+          }
+        }
+      },
+    ],
+    '/rename': ['Ganti nama room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
+    '/delete': ['Hapus room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
+    '/enter': ['Masuk room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
+    '/exit': ['Keluar room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
+    /* 
     '/Raiden': [
       'Yang Mulia Electro Archon: Raiden Shogun dan Ei.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
@@ -534,6 +567,7 @@ ${list}`
         }
       },
     ],
+    */
   },
   'Menu Lainnya': {
     '/math': [
@@ -569,7 +603,8 @@ ${list}`
               ffmpeg(filePath)
                 .input(filePath)
                 .outputOptions(['-y'])
-                .videoFilter( '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
+                .videoFilter(
+                  '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
                 )
                 .outputOptions(['-pix_fmt bgra', '-lossless 1'])
                 .output(`${filePath}.webp`)
@@ -578,9 +613,13 @@ ${list}`
                 .run()
             })
           }
-          const result = await client.sendImageAsSticker(resolveIncomingChatId(message), fit ? `${filePath}.webp` : filePath, {
-            quotedMsg: msgFrom
-          })
+          const result = await client.sendImageAsSticker(
+            resolveIncomingChatId(message),
+            fit ? `${filePath}.webp` : filePath,
+            {
+              quotedMsg: msgFrom,
+            }
+          )
           fs.rmSync(filePath, { force: true })
           fs.rmSync(`${filePath}.webp`, { force: true })
           return result

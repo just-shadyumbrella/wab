@@ -130,7 +130,7 @@ export enum Models {
   Maverick = 'meta-llama/llama-4-maverick:free',
 }
 
-const keys = process.env.OPEN_ROUTER?.split(',')
+const keys = process.env.OPENROUTER?.split(',')
 
 export async function chat(
   user: string,

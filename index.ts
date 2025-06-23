@@ -1,4 +1,5 @@
 import wppconnect from '@wppconnect-team/wppconnect'
+import qr from 'qrcode-terminal'
 import { sendText, getSenderNumber, resolveIncomingChatId, commandTable, ownerCommands } from './src/commands.js'
 
 // Start timer anchor
@@ -11,6 +12,7 @@ const config: wppconnect.CreateOptions = {
   browserArgs: ['--no-sandbox', '--disable-encryption', '--disable-machine-id'],
   debug: process.env.DEBUG === 'true',
   phoneNumber: process.env.PHONE_NUMBER,
+  catchQR: (str) => console.log('Scan QR:\n' + qr.generate(str, { small: true })),
   catchLinkCode: (str) => console.log('Pairing code: ' + str),
   puppeteerOptions: {
     timeout: 0,
@@ -40,14 +42,14 @@ try {
       setTimeout(tick, 10000)
     }
   })()
-  client.onRevokedMessage(async (message) => {
-    return console.log('Revoked message:', message)
+  client.onRevokedMessage((message) => {
+    console.log('Revoked message:', message)
   })
-  client.onStateChange(async (state) => {
+  client.onStateChange(async(state) => {
     if (state === 'CONNECTED') {
       const phoneNumber = process.env.PHONE_NUMBER
       if (phoneNumber) {
-        return await client.sendText(phoneNumber + '@c.us', `Automatic client successfully connected at ${Date}.`)
+        await client.sendText(`${phoneNumber}@c.us`, `Automatic client successfully connected at ${Date}.`)
       }
     }
   })
@@ -74,7 +76,7 @@ try {
         if (process.env.OWNER_NUMBER?.split(',').includes(getSenderNumber(message))) {
           try {
             console.time('Owner request handled')
-            ownerCommands[incomingCmd](client, message)
+            await ownerCommands[incomingCmd](client, message)
             console.timeEnd('Owner request handled')
           } catch (err) {
             console.error('Owner onAnyMessage error:', err)

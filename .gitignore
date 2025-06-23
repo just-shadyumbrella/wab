@@ -4,3 +4,4 @@ dist
 *tokens
 *lock*
 *tmp*
+*.db*
