@@ -49,10 +49,10 @@ async function createSqlConnection(dbLocalPath: string, dbUrl?: string) {
   }
 }
 
-const sql = await createSqlConnection('data.db', process.env.DUCKDB)
+const sql = await createSqlConnection('wab.db', process.env.DUCKDB)
 
 async function dbInit() {
-  await sql/* sql */ `use data.main`
+  await sql/* sql */ `use wab.main`
   return await sql/* sql */ `
 create table if not exists cai (
   room varchar not null primary key,
