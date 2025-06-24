@@ -14,8 +14,8 @@ async function createSqlConnection(dbLocalPath: string, dbUrl?: string) {
         accessMode: 'read_write',
       })
       // Attempt a lightweight query to verify connection
-      const result = await sql`SELECT 1`
-      if (result[0]['1'] === 1) {
+      const [result] = await sql`SELECT 1`
+      if (result['1'] === 1) {
         console.info('Connected to MotherDuck')
       } else {
         console.warn('Looks like something is not right:', result)
@@ -36,8 +36,8 @@ async function createSqlConnection(dbLocalPath: string, dbUrl?: string) {
       accessMode: 'read_write',
     })
     // Attempt a lightweight query to verify connection
-    const result = await sql`SELECT 1`
-    if (result[0]['1'] === 1) {
+    const [result] = await sql`SELECT 1`
+    if (result['1'] === 1) {
       console.info('Connected to local db:', dbLocalPath)
     } else {
       console.warn('Looks like something is not right:', result)
@@ -63,13 +63,34 @@ create table if not exists cai (
 )`
 }
 
+function appendArray<T>(target: T[], source: T[]): T[] {
+  const set = new Set(target)
+  for (const item of source) {
+    if (!set.has(item)) {
+      set.add(item)
+      target.push(item)
+    }
+  }
+  return target
+}
+
+
 const cai = {
   new: async (roomName: string, chatId: string, name: string, lang: keyof typeof character) => {
     const rm = `${roomName}:${chatId}`
-    const result = await sql/* sql */ `
+    const [result] = await sql/* sql */ `
     insert into cai (room, name, lang) values (${rm}, ${name}, ${lang})
     `
     console.log('New room:', rm, name, lang, result)
+    return result
+  },
+  enter: async (roomName: string, chatId: string, senderNumber: string) => {
+    const rm = `${roomName}:${chatId}`
+    const [p] = await sql/* sql */ `select participant from wab.main.cai where room = ${rm}`
+    const participant = p.participant as string[]
+    const newParticipant = appendArray(participant, [senderNumber])
+    const [result] = await sql/* sql */ `update cai set participant = ${`[${newParticipant.join(',')}]`}`
+    console.log(senderNumber, 'entered room:', rm, result)
     return result
   },
   updateMemory: async (roomName: string, chatId: string, data: { role: 'user' | 'assistant'; content: string }[]) => {
@@ -101,3 +122,5 @@ const cai = {
 await dbInit()
 
 export { cai }
+
+export default sql

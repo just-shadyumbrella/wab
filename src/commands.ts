@@ -186,10 +186,10 @@ export function sendText(
   msg: string,
   client: wppconnect.Whatsapp,
   message: wppconnect.Message,
-  quoted: 'string' | boolean = true
+  quoted: boolean = true
 ) {
   return client.sendText(resolveIncomingChatId(message), msg, {
-    quotedMsg: typeof quoted === 'string' ? quoted : message.id,
+    quotedMsg: quoted ? message.id : undefined,
   })
 }
 
@@ -267,7 +267,6 @@ Silahkan kirim perintah \`/help\` untuk list perintah.`,
 *📝 ${menuHead}:*
 ${list}`
         }
-
         return await sendText(msg.trim(), client, message)
       },
     ],
@@ -501,7 +500,7 @@ ${list}`
       'Buat room baru (chat ini saja).',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const params = parseCommand(message.body || '')
-        if (params.length <= 2 || params[1] === 'help') {
+        if (params.length <= 3 || params[1] === 'help') {
           const helpMsg = help([`${params[0]} <nama_room> <karakter>`], 'UNDOCUMENTED')
           return await sendText(helpMsg, client, message)
         }
@@ -512,23 +511,29 @@ ${list}`
           if (char.includes(charName)) {
             try {
               await cai.new(roomName, resolveIncomingChatId(message), charName, lang)
-              return await sendText(`Room \`${roomName}\` dibuat.`, client, message)
+              return await sendText(`Room \`${roomName}\` dibuat`, client, message)
             } catch (error) {
               const err = error as Error
               await sendText(err.message, client, message)
               throw err
             }
           } else {
-            return await sendText(`Karakter \`${charName}\` tidak tersedia.`, client, message)
+            return await sendText(`Karakter \`${charName}\` tidak tersedia`, client, message)
           }
         }
       },
     ],
     '/rename': ['Ganti nama room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
     '/delete': ['Hapus room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
-    '/enter': ['Masuk room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
+    '/enter': ['Masuk room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+      const params = parseCommand(message.body || '')
+      if (params.length <= 2 || params[1] === 'help') {
+        const helpMsg = help([`${params[0]} <nama_room> <karakter>`], 'UNDOCUMENTED')
+        return await sendText(helpMsg, client, message)
+      }
+    }],
     '/exit': ['Keluar room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
-    /* 
+    
     '/Raiden': [
       'Yang Mulia Electro Archon: Raiden Shogun dan Ei.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
@@ -567,7 +572,7 @@ ${list}`
         }
       },
     ],
-    */
+    
   },
   'Menu Lainnya': {
     '/math': [
@@ -585,7 +590,7 @@ ${list}`
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const msg = message.content || message.body
+        const msg = message.caption || message.body
         const msgFrom = message.id // incomingCmd
         message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message
         if (
