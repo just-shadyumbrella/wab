@@ -609,7 +609,7 @@ ${list}`
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const incomingMsg = message
         message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message // Image/Video
-        const params = parseCommand(message.caption || message.body || '')
+        const params = parseCommand(message.caption || incomingMsg.body || '')
         if (message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.VIDEO) {
           // Include quoted msg
           try {
