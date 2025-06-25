@@ -608,10 +608,10 @@ ${list}`
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const incomingMsg = message
-        message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message // Image/Video
-        const params = parseCommand(message.caption || incomingMsg.body || '')
+        message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message // Image/Video msg
+        const params = parseCommand((incomingMsg.quotedMsgId ? incomingMsg.body : message.caption) || '')
+        // Include quoted msg
         if (message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.VIDEO) {
-          // Include quoted msg
           try {
             fs.mkdirSync('.tmp')
           } catch (e) {
@@ -627,6 +627,10 @@ ${list}`
               console.time('Frames extraction complete')
               await new Promise<void>((resolve, reject) => {
                 ffmpeg(filePath)
+                  .videoFilter(
+                    '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
+                  )
+                  .outputOptions(['-pix_fmt', 'rgba', '-y'])
                   .output(`${filePath}.tmp/frame%04d.png`)
                   .on('end', () => resolve())
                   .on('error', (err) => reject(err))
@@ -642,36 +646,45 @@ ${list}`
                 quality: 100,
               })
               const result = await command.run()
+              console.log('Gifski Command:', result)
               console.timeEnd(`Gifski output: ${filePath}.gif`)
               fs.rmSync(`${filePath}.tmp`, { recursive: true, force: true })
               filePath = `${filePath}.gif`
-            } else {
+            } else if (message.type === wppconnect.MessageType.IMAGE) {
+              console.log('Fit square transparent background image')
+              console.time(`Ffmpeg output: ${filePath}.webp`)
               await new Promise<void>((resolve, reject) => {
                 ffmpeg(filePath)
                   .videoFilter(
                     '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
                   )
-                  .outputOptions(['-pix_fmt bgra', '-lossless 1', '-c:v', 'libwebp_anim', '-y'])
+                  .outputOptions(['-pix_fmt', 'bgra', '-lossless 1', '-c:v', 'libwebp_anim', '-y'])
                   .output(`${filePath}.webp`)
                   .on('end', () => resolve())
                   .on('error', (err) => reject(err))
                   .run()
               })
+              console.timeEnd(`Ffmpeg output: ${filePath}.webp`)
               fs.rmSync(filePath, { force: true })
               filePath = `${filePath}.webp`
             }
           }
-          const stickerHandler =
-            message.type === wppconnect.MessageType.VIDEO ? client.sendImageAsStickerGif : client.sendImageAsSticker
-          const result = await stickerHandler(resolveIncomingChatId(message), filePath, {
-            quotedMsg: incomingMsg.id,
-          })
+          let result
+          if (message.type === wppconnect.MessageType.VIDEO) {
+            result = await client.sendImageAsStickerGif(resolveIncomingChatId(message), filePath, {
+              quotedMsg: incomingMsg.id,
+            })
+          } else if (message.type === wppconnect.MessageType.IMAGE) {
+            result = await client.sendImageAsSticker(resolveIncomingChatId(message), filePath, {
+              quotedMsg: incomingMsg.id,
+            })
+          }
           fs.rmSync(filePath, { force: true })
           return result
         } else {
           const helpMsg = help(
-            [`[gambar] ${params[0]}`, `[reply] ${params[0]}`],
-            'Untuk saat ini hanya bisa satu gambar'
+            [`[gambar/video] ${params[0]} <fit?>`, `[reply gambar/video] ${params[0]} <fit?>`],
+            'Untuk saat ini hanya bisa satu gambar/video'
           )
           return await sendText(helpMsg, client, message)
         }
