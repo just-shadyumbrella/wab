@@ -49,7 +49,7 @@ try {
     if (state === wppconnect.SocketState.CONNECTED) {
       const phoneNumber = process.env.PHONE_NUMBER
       if (phoneNumber) {
-        await client.sendText(`${phoneNumber}@c.us`, `Automatic client successfully connected at ${Date}.`)
+        await client.sendText(`${phoneNumber}@c.us`, `Automatic client successfully connected at ${new Date}.`)
       }
     }
   })

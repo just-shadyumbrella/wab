@@ -604,6 +604,15 @@ ${list}`
         return await sendText(math.evaluate(params.join(' ')).toString(), client, message, true)
       },
     ],
+    '/st': [
+      'X',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        return await client.sendImageAsStickerGif(
+          resolveIncomingChatId(message),
+          'https://www.easygifanimator.net/images/samples/video-to-gif-sample.gif'
+        )
+      },
+    ],
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
@@ -615,8 +624,11 @@ ${list}`
           message.type === wppconnect.MessageType.VIDEO ||
           message.type === wppconnect.MessageType.DOCUMENT
         ) {
-          fs.mkdirSync('.tmp')
-          // let newFile = ''
+          try {
+            fs.mkdirSync('.tmp')
+          } catch (e) {
+            // console.error(e)
+          }
           let filePath = `.tmp/${crypto.randomUUID()}`
           await client.decryptAndSaveFile(message, filePath)
           const params = parseCommand(msg || '')
@@ -638,7 +650,7 @@ ${list}`
               fs.rmSync(filePath, { force: true })
               console.log('Gifski post-porcessing....')
               console.time(`Gifski output: ${filePath}.gif`)
-              
+
               const command = new GifskiCommand({
                 frames: [`${filePath}.tmp/frame*.png`],
                 output: `${filePath}.gif`,
