@@ -608,7 +608,11 @@ ${list}`
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
         const incomingMsg = message
-        message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message // Image/Video msg
+        message =
+          !(message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.VIDEO) &&
+          message.quotedMsgId
+            ? await client.getMessageById(message.quotedMsgId)
+            : message // Image/Video msg
         const params = parseCommand((incomingMsg.quotedMsgId ? incomingMsg.body : message.caption) || '')
         // Include quoted msg
         if (message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.VIDEO) {
