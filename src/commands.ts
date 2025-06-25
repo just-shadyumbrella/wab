@@ -604,20 +604,21 @@ ${list}`
         return await sendText(math.evaluate(params.join(' ')).toString(), client, message, true)
       },
     ],
-    '/st': [
-      'X',
-      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        return await client.sendImageAsStickerGif(
-          resolveIncomingChatId(message),
-          'https://www.easygifanimator.net/images/samples/video-to-gif-sample.gif'
-        )
-      },
-    ],
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
+      // async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+      //   const quotedMsg = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : undefined
+      //   const params = parseCommand(message.caption || message.body || '')
+      //   let filePath = `.tmp/${crypto.randomUUID()}`
+      //   await client.decryptAndSaveFile(message, filePath)
+      //   const fit = parseCommand(message.caption || message.body || '')[1] === 'fit'
+      // },
+    ],
+    '/Xs': [
+      'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const msg = message.caption || message.body
-        const msgFrom = message.id // incomingCmd
+        const msg = message.quotedMsgId ? message.caption : message.body
+        const msgFrom = message // incomingCmd
         message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message
         if (
           message.type === wppconnect.MessageType.IMAGE ||
@@ -650,7 +651,6 @@ ${list}`
               fs.rmSync(filePath, { force: true })
               console.log('Gifski post-porcessing....')
               console.time(`Gifski output: ${filePath}.gif`)
-
               const command = new GifskiCommand({
                 frames: [`${filePath}.tmp/frame*.png`],
                 output: `${filePath}.gif`,
@@ -678,9 +678,11 @@ ${list}`
           }
           const stickerHandler =
             message.type === wppconnect.MessageType.VIDEO ? client.sendImageAsStickerGif : client.sendImageAsSticker
-          const result = await stickerHandler(resolveIncomingChatId(message), filePath, {
-            quotedMsg: msgFrom,
-          })
+          // const result = await stickerHandler(resolveIncomingChatId(message), filePath, {
+          //   quotedMsg: msgFrom,
+          // })
+          console.log('filePath:', filePath)
+          const result = client.sendImageAsStickerGif(resolveIncomingChatId(msgFrom), filePath)
           fs.rmSync(filePath, { force: true })
           return result
         } else {
