@@ -650,7 +650,7 @@ ${list}`
               console.timeEnd(`Gifski output: ${filePath}.gif`)
               fs.rmSync(`${filePath}.tmp`, { recursive: true, force: true })
               filePath = `${filePath}.gif`
-            } else if (message.type === wppconnect.MessageType.IMAGE) {
+            } else {
               console.log('Fit square transparent background image')
               console.time(`Ffmpeg output: ${filePath}.webp`)
               await new Promise<void>((resolve, reject) => {
