@@ -607,9 +607,11 @@ ${list}`
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const msgFrom = message // incomingCmd
-        message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message
+        const incomingMsg = message
+        message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message // Image/Video
+        const params = parseCommand(message.caption || message.body || '')
         if (message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.VIDEO) {
+          // Include quoted msg
           try {
             fs.mkdirSync('.tmp')
           } catch (e) {
@@ -617,9 +619,7 @@ ${list}`
           }
           let filePath = `.tmp/${crypto.randomUUID()}`
           await client.decryptAndSaveFile(message, filePath)
-          const params = parseCommand(message.caption || msgFrom.body || '')
-          const fit = params[1] === 'fit'
-          if (fit) {
+          if (params[1] === 'fit') {
             if (message.type === wppconnect.MessageType.VIDEO) {
               // ffmpeg -i ./test/video.mp4 ./test/video.mp4.frame%04d.png
               fs.mkdirSync(`${filePath}.tmp`, { recursive: true })
@@ -663,22 +663,17 @@ ${list}`
           }
           const stickerHandler =
             message.type === wppconnect.MessageType.VIDEO ? client.sendImageAsStickerGif : client.sendImageAsSticker
-          // const result = await stickerHandler(resolveIncomingChatId(message), filePath, {
-          //   quotedMsg: msgFrom,
-          // })
-          console.log('filePath:', filePath)
-          const result = await client.sendImageAsStickerGif(resolveIncomingChatId(msgFrom), filePath)
+          const result = await stickerHandler(resolveIncomingChatId(message), filePath, {
+            quotedMsg: incomingMsg.id,
+          })
           fs.rmSync(filePath, { force: true })
           return result
         } else {
-          const params = parseCommand(message.body || '')
-          if (params.length <= 1 || params[1] === 'help') {
-            const helpMsg = help(
-              [`[gambar] ${params[0]}`, `[reply] ${params[0]}`],
-              'Untuk saat ini hanya bisa satu gambar'
-            )
-            return await sendText(helpMsg, client, message)
-          }
+          const helpMsg = help(
+            [`[gambar] ${params[0]}`, `[reply] ${params[0]}`],
+            'Untuk saat ini hanya bisa satu gambar'
+          )
+          return await sendText(helpMsg, client, message)
         }
       },
     ],
