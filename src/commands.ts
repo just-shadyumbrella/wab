@@ -2,10 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import si from 'systeminformation'
 import ffmpeg from 'fluent-ffmpeg'
+import wppconnect from '@wppconnect-team/wppconnect'
 import { config } from 'dotenv'
 import { create, all } from 'mathjs'
-import wppconnect from '@wppconnect-team/wppconnect'
 import { ChatCompletionCreateParams } from 'openai/resources'
+import { GifskiCommand } from 'gifski-command'
 import character from './ai/character.js'
 import { CharName, chat, getMemorySlot, Models, resetMemorySlot, setMemorySlot } from './ai/openrouter.js'
 import { shutdown } from '../index.js'
@@ -525,15 +526,18 @@ ${list}`
     ],
     '/rename': ['Ganti nama room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
     '/delete': ['Hapus room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
-    '/enter': ['Masuk room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-      const params = parseCommand(message.body || '')
-      if (params.length <= 2 || params[1] === 'help') {
-        const helpMsg = help([`${params[0]} <nama_room> <karakter>`], 'UNDOCUMENTED')
-        return await sendText(helpMsg, client, message)
-      }
-    }],
+    '/enter': [
+      'Masuk room.',
+      async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
+        const params = parseCommand(message.body || '')
+        if (params.length <= 2 || params[1] === 'help') {
+          const helpMsg = help([`${params[0]} <nama_room> <karakter>`], 'UNDOCUMENTED')
+          return await sendText(helpMsg, client, message)
+        }
+      },
+    ],
     '/exit': ['Keluar room.', async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {}],
-    
+
     '/Raiden': [
       'Yang Mulia Electro Archon: Raiden Shogun dan Ei.',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
@@ -545,7 +549,14 @@ ${list}`
         const charName = params[0].slice(1) as CharName
         params.shift()
         try {
-          const chatResult = await chat(getSenderNumber(message), resolveIncomingChatId(message), charName, lang, params.join(' '), modelOptions)
+          const chatResult = await chat(
+            getSenderNumber(message),
+            resolveIncomingChatId(message),
+            charName,
+            lang,
+            params.join(' '),
+            modelOptions
+          )
           return await sendText(`*🌀 Raiden Shogun*\n\n${chatResult}`, client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${charName} kayaknya sedang sibuk 😅`, client, message, true)
@@ -564,7 +575,14 @@ ${list}`
         const charName = params[0].slice(1) as CharName
         params.shift()
         try {
-          const chatResult = await chat(getSenderNumber(message), resolveIncomingChatId(message), charName, lang, params.join(' '), modelOptions)
+          const chatResult = await chat(
+            getSenderNumber(message),
+            resolveIncomingChatId(message),
+            charName,
+            lang,
+            params.join(' '),
+            modelOptions
+          )
           return await sendText(`*🎎 Wanderer*\n\n${chatResult}`, client, message, true)
         } catch (error) {
           await sendText(`🤖 Ups, ${charName} kayaknya sedang sibuk 😅`, client, message, true)
@@ -572,7 +590,6 @@ ${list}`
         }
       },
     ],
-    
   },
   'Menu Lainnya': {
     '/math': [
@@ -598,35 +615,61 @@ ${list}`
           message.type === wppconnect.MessageType.VIDEO ||
           message.type === wppconnect.MessageType.DOCUMENT
         ) {
-          fs.mkdirSync('.tmp', { recursive: true })
-          const filePath = `.tmp/${crypto.randomUUID()}`
+          fs.mkdirSync('.tmp')
+          // let newFile = ''
+          let filePath = `.tmp/${crypto.randomUUID()}`
           await client.decryptAndSaveFile(message, filePath)
           const params = parseCommand(msg || '')
           const fit = params[1] === 'fit'
           if (fit) {
-            await new Promise<void>((resolve, reject) => {
-              ffmpeg(filePath)
-                .input(filePath)
-                .outputOptions(['-y'])
-                .videoFilter(
-                  '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
-                )
-                .outputOptions(['-pix_fmt bgra', '-lossless 1'])
-                .output(`${filePath}.webp`)
-                .on('end', () => resolve())
-                .on('error', (err) => reject(err))
-                .run()
-            })
-          }
-          const result = await client.sendImageAsSticker(
-            resolveIncomingChatId(message),
-            fit ? `${filePath}.webp` : filePath,
-            {
-              quotedMsg: msgFrom,
+            if (message.type === wppconnect.MessageType.VIDEO) {
+              // ffmpeg -i ./test/video.mp4 ./test/video.mp4.frame%04d.png
+              fs.mkdirSync(`${filePath}.tmp`, { recursive: true })
+              console.log('Crushing video to image frames...')
+              console.time('Frames extraction complete')
+              await new Promise<void>((resolve, reject) => {
+                ffmpeg(filePath)
+                  .output(`${filePath}.tmp/frame%04d.png`)
+                  .on('end', () => resolve())
+                  .on('error', (err) => reject(err))
+                  .run()
+              })
+              console.timeEnd('Frames extraction complete')
+              fs.rmSync(filePath, { force: true })
+              console.log('Gifski post-porcessing....')
+              console.time(`Gifski output: ${filePath}.gif`)
+              
+              const command = new GifskiCommand({
+                frames: [`${filePath}.tmp/frame*.png`],
+                output: `${filePath}.gif`,
+                quality: 100,
+              })
+              const result = await command.run()
+              console.timeEnd(`Gifski output: ${filePath}.gif`)
+              fs.rmSync(`${filePath}.tmp`, { recursive: true, force: true })
+              filePath = `${filePath}.gif`
+            } else {
+              await new Promise<void>((resolve, reject) => {
+                ffmpeg(filePath)
+                  .videoFilter(
+                    '[0]scale=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):force_original_aspect_ratio=decrease[scaled];[scaled]pad=2*trunc(max(iw\\,ih)/2):2*trunc(max(iw\\,ih)/2):(ow-iw)/2:(oh-ih)/2:color=0x00000000'
+                  )
+                  .outputOptions(['-pix_fmt bgra', '-lossless 1', '-c:v', 'libwebp_anim', '-y'])
+                  .output(`${filePath}.webp`)
+                  .on('end', () => resolve())
+                  .on('error', (err) => reject(err))
+                  .run()
+              })
+              fs.rmSync(filePath, { force: true })
+              filePath = `${filePath}.webp`
             }
-          )
+          }
+          const stickerHandler =
+            message.type === wppconnect.MessageType.VIDEO ? client.sendImageAsStickerGif : client.sendImageAsSticker
+          const result = await stickerHandler(resolveIncomingChatId(message), filePath, {
+            quotedMsg: msgFrom,
+          })
           fs.rmSync(filePath, { force: true })
-          fs.rmSync(`${filePath}.webp`, { force: true })
           return result
         } else {
           const params = parseCommand(message.body || '')
