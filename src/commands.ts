@@ -606,25 +606,10 @@ ${list}`
     ],
     '/sticker': [
       'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
-      // async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-      //   const quotedMsg = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : undefined
-      //   const params = parseCommand(message.caption || message.body || '')
-      //   let filePath = `.tmp/${crypto.randomUUID()}`
-      //   await client.decryptAndSaveFile(message, filePath)
-      //   const fit = parseCommand(message.caption || message.body || '')[1] === 'fit'
-      // },
-    ],
-    '/Xs': [
-      'Gambar atau video jadi stiker (alpha: kemungkinan masih belum stabil)',
       async (client: wppconnect.Whatsapp, message: wppconnect.Message) => {
-        const msg = message.quotedMsgId ? message.caption : message.body
         const msgFrom = message // incomingCmd
         message = message.quotedMsgId ? await client.getMessageById(message.quotedMsgId) : message
-        if (
-          message.type === wppconnect.MessageType.IMAGE ||
-          message.type === wppconnect.MessageType.VIDEO ||
-          message.type === wppconnect.MessageType.DOCUMENT
-        ) {
+        if (message.type === wppconnect.MessageType.IMAGE || message.type === wppconnect.MessageType.VIDEO) {
           try {
             fs.mkdirSync('.tmp')
           } catch (e) {
@@ -632,7 +617,7 @@ ${list}`
           }
           let filePath = `.tmp/${crypto.randomUUID()}`
           await client.decryptAndSaveFile(message, filePath)
-          const params = parseCommand(msg || '')
+          const params = parseCommand(message.caption || msgFrom.body || '')
           const fit = params[1] === 'fit'
           if (fit) {
             if (message.type === wppconnect.MessageType.VIDEO) {
@@ -682,7 +667,7 @@ ${list}`
           //   quotedMsg: msgFrom,
           // })
           console.log('filePath:', filePath)
-          const result = client.sendImageAsStickerGif(resolveIncomingChatId(msgFrom), filePath)
+          const result = await client.sendImageAsStickerGif(resolveIncomingChatId(msgFrom), filePath)
           fs.rmSync(filePath, { force: true })
           return result
         } else {
